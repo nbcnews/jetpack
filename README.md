@@ -25,11 +25,7 @@ https://github.com/jerfletcher/hubTm will eventually move here as an npm package
 
 ## Installation
 
-    ~~git clone https://github.com/jerfletcher/hubTm~~
-    ~~vagrant up --provision~~
-    ~~vagrant ssh~~
-    ~~cd /vagrant~~
-    ~~npm install~~
+
 
 ## Build a Bundle
     node bundle [project] [-dev]
