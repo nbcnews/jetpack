@@ -1,0 +1,33 @@
+{
+  "name": "jetpack",
+  "version": "0.0.1",
+  "description": "script bundler and deployment tool",
+  "main": "bundle.js",
+  "author": "Todd Wallar",
+  "contributors": [
+    "Todd Wallar <todd.wallar@nbcuni.com>"
+  ],
+  "license": "ISC",
+  "devDependencies": {
+    "http-server": "^0.9.0"
+  },
+  "dependencies": {
+    "css-loader": "^0.26.1",
+    "file-loader": "^0.9.0",
+    "html-loader": "^0.4.4",
+    "style-loader": "^0.13.1",
+    "url-loader": "^0.5.7",
+    "webpack": "^2.2.0-rc.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/nbcnews/jetpack.git"
+  },
+  "bugs": {
+    "url": "https://github.com/nbcnews/jetpack/issues"
+  },
+  "homepage": "https://github.com/nbcnews/jetpack#readme",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}
