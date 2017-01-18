@@ -52,7 +52,7 @@ const filename =  options.site + '_bundle' + (options.minify?'_min':'') + '.js';
 
 const wpConfig = {
     context: workingDir,
-    entry: "./sites/" + options.site + ".js",
+    entry: workingDir + "/sites/" + options.site + ".js",
     output: {
         "path": workingDir + '/dist/' + options.site + '/',
         "filename":  filename,
@@ -60,7 +60,7 @@ const wpConfig = {
     },
     resolve: {
         modules: [
-            path.resolve(workingDir)
+            path.resolve(__dirname)
         ]
     },
     module: {
