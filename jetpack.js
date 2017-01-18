@@ -9,4 +9,4 @@ exports = {
   "utils" : utils,
   "info" : info,
   "mgr" : mgr
-}
+};
