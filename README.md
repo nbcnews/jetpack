@@ -33,26 +33,20 @@ https://github.com/jerfletcher/hubTm will eventually move here as an npm package
     npm install
 
 ## Build a Bundle
-    node bundle [project] [-dev]
-    ex. node bundle today -dev
+    npm run bundle [project]
+    npm run bundle:dev [project]
 
 ## Next Steps
 *   ~~Incorporate actual Ad code~~
 *   ~~add relative path imgs to dist~~
+*   Lazy loading mechanism
 *   automate deployment
 *   Refactor display/launch rules (optionsManager)
-*   Create NPM component and split repo
+*   ~~Create NPM component and split repo~~
 *   Work with Ops on deployment process (Github release mechanism + server buildout + file copy + redirect)
-*   Lazy loading mechanism
-
-## Build a Bundle
-    npm run bundle -- [project]
-or  npm run bundle:dev -- [project]
-
-    ex. npm run bundle -- today
 
 ## Run the server for local dev
-open a new terminal window
+TODO: open a new terminal window
 	npm run server
 browse to http://localhost:8888/
 
