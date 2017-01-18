@@ -1,5 +1,5 @@
 /**
- * Public interface for team projects
+ * Public interface for team projects, makes it easy to import
  */
 import * as utils from 'lib/basicUtils';
 import * as info from 'lib/info';
