@@ -4,13 +4,11 @@
 import * as utils from 'lib/basicUtils';
 import * as info from 'lib/info';
 import * as mgr from 'lib/optionsManager';
-import * as requireRunner from 'lib/runner/require';
+import requirelib from 'lib/runner/requirelib';
 
-exports = {
+export default {
   "utils" : utils,
   "info" : info,
-  "mgr" : mgr,
-  "runner" : {
-    "require" : requireRunner
-  }
+  "mgr": mgr,
+  "requirelib" : requirelib
 };
