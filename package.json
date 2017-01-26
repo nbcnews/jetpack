@@ -3,7 +3,7 @@
   "version": "0.0.2",
   "description": "script bundler and deployment tool",
   "private": true,
-  "main": "bundle.js",
+  "main": "cmd.js",
   "author": "Todd Wallar",
   "contributors": [
     "Todd Wallar <todd.wallar@nbcuni.com>"
