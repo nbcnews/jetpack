@@ -9,17 +9,18 @@
     "Todd Wallar <todd.wallar@nbcuni.com>"
   ],
   "license": "UNLICENSED",
-  "devDependencies": {
-  },
+  "devDependencies": {},
   "dependencies": {
     "chalk": "^1.1.3",
     "css-loader": "^0.26.1",
     "file-loader": "^0.9.0",
     "html-loader": "^0.4.4",
     "http-server": "^0.9.0",
+    "node-sass": "^4.3.0",
+    "sass-loader": "^4.1.1",
     "style-loader": "^0.13.1",
     "url-loader": "^0.5.7",
-    "webpack": "^2.2.0-rc.3"
+    "webpack": "^2.2.0"
   },
   "repository": {
     "type": "git",
