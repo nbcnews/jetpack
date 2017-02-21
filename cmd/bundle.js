@@ -1,14 +1,10 @@
 const path = require('path');
 const webpack = require('webpack');
 const info = require('./info');
+const helpers = require('./helpers');
 
 module.exports = function(site, isDev) {
-  var workingDir = process.env.PWD || __dirname;
-
-  //if we are being run as an npm module, then use the parent path instead.
-  if (__dirname.indexOf('node_modules') !== -1) {
-    workingDir = (__dirname.split('/node_modules'))[0];
-  }
+  var workingDir = helpers.workingDir();
 
   var doMinify = !isDev;
   var plugins = [];

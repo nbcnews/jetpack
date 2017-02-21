@@ -2,27 +2,28 @@ const info = require('./cmd/info');
 const bundler = require('./cmd/bundle');
 const deploy = require('./cmd/deploy');
 const release = require('./cmd/release');
-
-var workingDir = process.env.PWD || __dirname;
-
-//if we are being run as an npm module, then use the parent path instead.
-if (__dirname.indexOf('node_modules') !== -1) {
-  workingDir = (__dirname.split('/node_modules'))[0];
-}
+const helpers = require('./cmd/helpers');
 
 var args = (JSON.parse(process.env.npm_config_argv)).remain;
 var cmd = args[0];
 info.log(args);
 
+var site = args[1];
+
+if (!site) {
+  info.error('No site specified');
+  return;
+}
+
 switch(cmd) {
   case 'bundle':
   case 'build':
-    bundler(args[1],false);
+    bundler(site,false);
     break;
 
   case 'bundle:dev':
   case 'build:dev':
-    bundler(args[1],true);
+    bundler(site,true);
     break;
 
   case 'server-start':
@@ -32,11 +33,16 @@ switch(cmd) {
     break;
 
   case 'deploy':
-    deploy(args[1],false);
+    const tag = args[2];
+    if (!tag) {
+      info.error('No tag/version name provided.');
+      return;
+    }
+    deploy(site,tag,false);
     break;
 
   case 'tag-release':
-    release(args[1],false);
+    release(site,false);
     break;
 
   default:

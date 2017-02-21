@@ -1,10 +1,11 @@
 const env = require('node-env-file');
-const info = require('./info');
 const s3 = require('s3');
+const info = require('./info');
+const helpers = require('./helpers');
 
 env(process.env.PWD + '/.env');
 
-module.exports = function(site, isDev) {
+module.exports = function(site, tag, isDev) {
   var err = null;
   if (typeof process.env.S3_BUCKET === undefined) {
     info.error("S3_BUCKET not defined in .env file.");
@@ -40,26 +41,60 @@ module.exports = function(site, isDev) {
     },
   });
 
-  info.log("grabbing release.json from : " + process.env.S3_BUCKET + '/' + site);
 
-  var s3Params = {
-    Bucket: process.env.S3_BUCKET,
-    Key: site + "/release.json"
-  };
+  function getReleaseInfo(onReleaseInfo) {
+    info.log("grabbing release.json from : " + process.env.S3_BUCKET + '/' + site);
 
-  var downloader = client.downloadBuffer(s3Params);
-  downloader.on('error', function(err) {
-    info.error("unable to download:");
-    info.error(err.stack);
-  });
-  downloader.on('progress', function() {
-    info.log(".", downloader.progressAmount, downloader.progressTotal);
-  });
-  downloader.on('end', function(buffer) {
-    var releaseInfo = JSON.parse(buffer.toString('ascii'));
+    var s3Params = {
+      Bucket: process.env.S3_BUCKET,
+      Key: site + "/release.json"
+    };
 
+    var downloader = client.downloadBuffer(s3Params);
+    downloader.on('error', function(err) {
+      info.error("unable to download:");
+      info.error(err.stack);
+    });
+    downloader.on('progress', function() {
+      info.log(".", downloader.progressAmount, downloader.progressTotal);
+    });
+    downloader.on('end', function(buffer) {
+      var releaseInfo = JSON.parse(buffer.toString('ascii'));
+      onReleaseInfo(releaseInfo);
+    });
+  }
+
+  function doUpload(releaseInfo) {
     info.log('current tag: ' + releaseInfo.version);
-  });
+    if (releaseInfo.version === tag) {
+      info.error('Your tag matches the current release. You must choose a unique tag name for your bundle.');
+    } else {
+      info.log('uploading ' + tag);
+      var workingDir = helpers.workingDir();
+      var params = {
+        localDir: workingDir + '/dist/' + site,
+        deleteRemoved: true,
+        s3Params: {
+          Bucket: process.env.S3_BUCKET,
+          Prefix: site + '/' + tag
+        }
+      };
 
+      var up = client.uploadDir(params);
+      up.on('error', function(err) {
+        info.error("unable to upload:");
+        info.error(err.stack);
+      });
+      up.on('progress', function() {
+        info.log(".", up.progressAmount, up.progressTotal);
+      });
+      up.on('end', function(buffer) {
+        info.log('done');
+      });
+    }
+
+  }
+
+  getReleaseInfo(doUpload);
 
 };
