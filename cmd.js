@@ -1,6 +1,7 @@
-const info = require('./lib/info');
-const bundler = require('./lib/bundle');
-const chalk = require('chalk');
+const info = require('./cmd/info');
+const bundler = require('./cmd/bundle');
+const deploy = require('./cmd/deploy');
+const release = require('./cmd/release');
 
 var workingDir = process.env.PWD || __dirname;
 
@@ -28,11 +29,20 @@ switch(cmd) {
     //TODO
     //'node ./node_modules/http-server/bin/http-server ./dist -p 8888
     //break;
+    break;
+
+  case 'deploy':
+    deploy(args[1],false);
+    break;
+
+  case 'tag-release':
+    release(args[1],false);
+    break;
 
   default:
     info.log(cmd + ' command not found. Try updating jetpack.');
     info.log('Usage for');
-    info.log(chalk.blue('npm run jetpack'));
+    info.label('npm run jetpack');
     info.log('bundle [site] : build a site bundle');
     info.log('bundle:dev [site] : build an unminified site bundle with verboses output');
     break;

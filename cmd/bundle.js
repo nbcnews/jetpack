@@ -22,7 +22,22 @@ module.exports = function(site, isDev) {
         }
       })
     );
-  }
+   }
+
+   plugins.push(function giveMeErrors() {
+    this.plugin("compile", function (params) {
+      info.log('packaging ' + site);
+    });
+    this.plugin("done", function (stats) {
+      if (stats.compilation.errors && stats.compilation.errors.length && process.argv.indexOf('--watch') === -1) {
+        info.error('webpack build failed.');
+        info.error(stats.compilation.errors);
+      } else if (isDev) {
+        info.log(stats);
+      }
+    });
+  });
+
   const filename =  site + '_bundle' + (doMinify?'_min':'') + '.js';
 
   const wpConfig = {
@@ -35,11 +50,13 @@ module.exports = function(site, isDev) {
     },
     resolve: {
       modules: [
+        path.resolve(__dirname.replace('/cmd','')),
         path.resolve(__dirname.replace('/lib','')),
         path.resolve(workingDir)
       ]
     },
     module: {
+
       loaders: [{
         test: /\.css$/,
         loader: "style-loader!css-loader"
@@ -60,10 +77,7 @@ module.exports = function(site, isDev) {
   var compiler = webpack(wpConfig);
 
   compiler.run(function(err, stats) {
-    info.log('packaging ' + site);
-    if (isDev) {
-      info.log(stats);
-    }
+    info.log('done');
   });
 
 }
