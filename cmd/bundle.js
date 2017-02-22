@@ -3,6 +3,7 @@ const path = require('path');
 const webpack = require('webpack');
 const info = require('./info');
 const helpers = require('./helpers');
+var CleanWebpackPlugin = require('clean-webpack-plugin');
 
 env(process.env.PWD + '/.env');
 
@@ -11,6 +12,13 @@ module.exports = function(site, tag, isDev) {
 
   var doMinify = !isDev;
   var plugins = [];
+
+  plugins.push(new CleanWebpackPlugin(['dist/' + site], {
+    root: process.env.PWD,
+    verbose: true,
+    dry: false,
+    exclude: []
+  }));
 
   if (doMinify) {
     plugins.push(new webpack.optimize.UglifyJsPlugin({
