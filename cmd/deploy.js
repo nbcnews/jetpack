@@ -65,18 +65,19 @@ module.exports = function(site, tag, isDev) {
   }
 
   function doUpload(releaseInfo) {
-    info.log('current tag: ' + releaseInfo.version);
+    info.log('current release tag: ' + releaseInfo.version);
     if (releaseInfo.version === tag) {
       info.error('Your tag matches the current release. You must choose a unique tag name for your bundle.');
     } else {
-      info.log('uploading ' + tag);
+      info.log('uploading to ' + process.env.PUBLIC_PATH + tag);
       var workingDir = helpers.workingDir();
       var params = {
         localDir: workingDir + '/dist/' + site,
         deleteRemoved: true,
         s3Params: {
           Bucket: process.env.S3_BUCKET,
-          Prefix: site + '/' + tag
+          Prefix: site + '/' + tag,
+          ACL: 'public-read'
         }
       };
 

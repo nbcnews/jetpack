@@ -3,12 +3,27 @@ const bundler = require('./cmd/bundle');
 const deploy = require('./cmd/deploy');
 const release = require('./cmd/release');
 const helpers = require('./cmd/helpers');
+const git = require('git-rev');
 
 var args = (JSON.parse(process.env.npm_config_argv)).remain;
 var cmd = args[0];
 info.log(args);
 
-var site = args[1];
+const site = args[1];
+const tag = args[2];
+
+function fetchTag(action) {
+  if (!tag) {
+    info.log('No tag/version name provided.');
+    git.branch(function(str) {
+      info.log('Using git branch name: ' + str);
+      action(str);
+    });
+    return;
+  }
+  action(tag);
+}
+
 
 if (!site) {
   info.error('No site specified');
@@ -18,39 +33,37 @@ if (!site) {
 switch(cmd) {
   case 'bundle':
   case 'build':
-    bundler(site,false);
+    fetchTag(function(tagStr) {
+      bundler(site, tagStr, false);
+    });
     break;
 
   case 'bundle:dev':
   case 'build:dev':
-    bundler(site,true);
-    break;
-
-  case 'server-start':
-    //TODO
-    //'node ./node_modules/http-server/bin/http-server ./dist -p 8888
-    //break;
+    fetchTag(function(tagStr) {
+      bundler(site, tagStr, true);
+    });
     break;
 
   case 'deploy':
-    const tag = args[2];
-    if (!tag) {
-      info.error('No tag/version name provided.');
-      return;
-    }
-    deploy(site,tag,false);
+    fetchTag(function(tagStr) {
+      deploy(site, tagStr, true);
+    });
     break;
 
   case 'tag-release':
-    release(site,false);
+    fetchTag(function(tagStr) {
+      release(site, tagStr, false);
+    });
     break;
 
   default:
     info.log(cmd + ' command not found. Try updating jetpack.');
     info.log('Usage for');
     info.label('npm run jetpack');
-    info.log('bundle [site] : build a site bundle');
-    info.log('bundle:dev [site] : build an unminified site bundle with verboses output');
+    info.log('bundle [site] [tag-name]: build a site bundle');
+    info.log('bundle:dev [site] [tag-name]: build an unminified site bundle with verboses output');
+    info.log('deploy [site] [tag-name]: move a local site bundle to S3');
     break;
 }
 

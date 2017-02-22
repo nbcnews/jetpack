@@ -1,9 +1,12 @@
+const env = require('node-env-file');
 const path = require('path');
 const webpack = require('webpack');
 const info = require('./info');
 const helpers = require('./helpers');
 
-module.exports = function(site, isDev) {
+env(process.env.PWD + '/.env');
+
+module.exports = function(site, tag, isDev) {
   var workingDir = helpers.workingDir();
 
   var doMinify = !isDev;
@@ -42,7 +45,7 @@ module.exports = function(site, isDev) {
     output: {
       "path": workingDir + '/dist/' + site + '/',
       "filename":  filename,
-      "publicPath": '/' + site + '/'
+      "publicPath": process.env.PUBLIC_PATH + site + '/' + tag
     },
     resolve: {
       modules: [
