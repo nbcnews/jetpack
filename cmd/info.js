@@ -19,3 +19,7 @@ exports.label = function(msg) {
 exports.error = function(msg) {
   console.log(chalk.red(msg));
 };
+
+exports.progress = function() {
+  process.stdout.write(".");
+};

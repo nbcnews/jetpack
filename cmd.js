@@ -17,6 +17,16 @@ function fetchTag(action) {
     info.log('No tag/version name provided.');
     git.branch(function(str) {
       info.log('Using git branch name: ' + str);
+
+      if (str === 'master') {
+        info.log('Master branch will use the current tag:');
+        git.tag(function(mtag) {
+          info.log(mtag);
+          action(mtag);
+        });
+        return;
+      }
+
       action(str);
     });
     return;
@@ -51,7 +61,7 @@ switch(cmd) {
     });
     break;
 
-  case 'tag-release':
+  case 'release':
     fetchTag(function(tagStr) {
       release(site, tagStr, false);
     });

@@ -1,11 +1,10 @@
-const env = require('node-env-file');
 const path = require('path');
 const webpack = require('webpack');
 const info = require('./info');
 const helpers = require('./helpers');
 var CleanWebpackPlugin = require('clean-webpack-plugin');
 
-env(process.env.PWD + '/.env');
+const env = helpers.env();
 
 module.exports = function(site, tag, isDev) {
   var workingDir = helpers.workingDir();
@@ -14,7 +13,7 @@ module.exports = function(site, tag, isDev) {
   var plugins = [];
 
   plugins.push(new CleanWebpackPlugin(['dist/' + site], {
-    root: process.env.PWD,
+    root: env.PWD,
     verbose: true,
     dry: false,
     exclude: []
@@ -42,6 +41,10 @@ module.exports = function(site, tag, isDev) {
       } else if (isDev) {
         info.log(stats);
       }
+
+      if (!isDev) {
+        helpers.writeManifest(site, tag);
+      }
     });
   });
 
@@ -53,7 +56,7 @@ module.exports = function(site, tag, isDev) {
     output: {
       "path": workingDir + '/dist/' + site + '/',
       "filename":  filename,
-      "publicPath": process.env.PUBLIC_PATH + site + '/' + tag
+      "publicPath": env.PUBLIC_PATH + site + '/' + tag + '/'
     },
     resolve: {
       modules: [
