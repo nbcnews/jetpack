@@ -1,5 +1,6 @@
 const info = require('./info');
 const helpers = require('./helpers');
+const s3 = require('s3');
 
 var env = helpers.env();
 
@@ -16,7 +17,7 @@ module.exports = function(site, tag, isDev) {
         info.error('Your tag matches the current release. You must choose a unique tag name for your bundle.');
       } else {
 
-        info.log('uploading to ' + env.PUBLIC_PATH + env.S3_BUCKET + '/' + site + '/' + tag);
+        info.log('uploading');
         var workingDir = helpers.workingDir();
         var params = {
           localDir: workingDir + '/dist/' + site,
@@ -36,8 +37,9 @@ module.exports = function(site, tag, isDev) {
         up.on('progress', function() {
           info.progress(/*".", up.progressAmount, up.progressTotal*/);
         });
-        up.on('end', function(buffer) {
+        up.on('end', function() {
           info.log('done');
+          info.log(s3.getPublicUrlHttp(env.S3_BUCKET,site + '/' + tag + '/' + site + '_bundle_min.js'));
         });
       }
     }

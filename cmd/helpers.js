@@ -102,7 +102,8 @@ function writeManifest(site, tag) {
           "version": tag,
           "commit": logarray[0][0],
           "bundle": site + "_bundle_min.js",
-          "url":  env.PUBLIC_PATH + site + '/'
+          "url":  env.PUBLIC_PATH + site + '/',
+          "created": (new Date()).toString()
         };
 
         var jsonStr = JSON.stringify(newReleaseInfo, null, 4);

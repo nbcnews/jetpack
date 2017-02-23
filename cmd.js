@@ -25,6 +25,11 @@ function fetchTag(action) {
           action(mtag);
         });
         return;
+      } else {
+        if (cmd === 'release') {
+          info.error('You must be on the master branch to do a relase.');
+          return;
+        }
       }
 
       action(str);
