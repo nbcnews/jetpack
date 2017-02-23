@@ -5,3 +5,4 @@ Wrapper for webpack.
 # hubTm
     Packager for browser js, css, html
 
+More info here: https://github.com/nbcnews/jetpack-project
