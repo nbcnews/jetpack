@@ -66,12 +66,23 @@ module.exports = function(site, tag, isDev) {
       ]
     },
     module: {
-
+      rules: [
+      ],
       loaders: [{
+        test: /\.js$/,
+        loader: "jshint-loader",
+        options: {
+          emitErrors: false,
+          failOnHint: false,
+          reporter: function(errors) {
+            console.log(errors);
+          }
+        }
+      },{
         test: /\.css$/,
         loader: "style-loader!css-loader"
       },{
-        test: /\.html/,
+        test: /\.html$/,
         loader: "html-loader"
       }, {
         test: /\.(png|jpg|jpeg|gif|woff)$/,
