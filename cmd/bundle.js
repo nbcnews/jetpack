@@ -2,7 +2,7 @@ const path = require('path');
 const webpack = require('webpack');
 const info = require('./info');
 const helpers = require('./helpers');
-var CleanWebpackPlugin = require('clean-webpack-plugin');
+const CleanWebpackPlugin = require('clean-webpack-plugin');
 
 const env = helpers.env();
 
@@ -28,18 +28,27 @@ module.exports = function(site, tag, isDev) {
         }
       })
     );
-   }
+  }
 
-   plugins.push(function giveMeErrors() {
-    this.plugin("compile", function (params) {
+  plugins.push(function giveMeErrors() {
+    this.plugin("compile", function (/*params*/) {
       info.log('packaging ' + site);
     });
     this.plugin("done", function (stats) {
       if (stats.compilation.errors && stats.compilation.errors.length && process.argv.indexOf('--watch') === -1) {
         info.error('webpack build failed.');
         info.error(stats.compilation.errors);
-      } else if (isDev) {
-        info.log(stats);
+      } else {
+        info.log('files packaged:');
+        stats.compilation.fileDependencies.forEach(function(f) {
+          info.log(f);
+        });
+        info.log('missing dependencies:');
+        stats.compilation.missingDependencies.forEach(function(f) {
+          info.log(f);
+        });
+        info.log('assets created:');
+        info.log(Object.keys(stats.compilation.assets));
       }
 
       if (!isDev) {
@@ -66,16 +75,24 @@ module.exports = function(site, tag, isDev) {
       ]
     },
     module: {
-      rules: [
-      ],
       loaders: [{
         test: /\.js$/,
         loader: "jshint-loader",
         options: {
+          esversion: 5,
           emitErrors: false,
           failOnHint: false,
           reporter: function(errors) {
-            console.log(errors);
+            //ignore import is only available in ES6
+            errors.forEach(function(err) {
+              if (err.reason.indexOf('import\' is only available') === -1 && err.reason.indexOf('export\' is only available') === -1) {
+                info.error(JSON.stringify(err));
+                /* info.error(err.reason);
+                info.log(err.evidence);
+                info.log(err.scope + ' line:' + err.line + ' char:' + err.character);
+                */
+              }
+            });
           }
         }
       },{
@@ -93,12 +110,12 @@ module.exports = function(site, tag, isDev) {
       }]
     },
     "plugins": plugins
-  }
+  };
 
   var compiler = webpack(wpConfig);
 
-  compiler.run(function(err, stats) {
+  compiler.run(function(/*err, stats*/) {
     info.log('done');
   });
 
-}
+};
