@@ -56,7 +56,7 @@ function s3Client() {
   return client;
 }
 
-function getReleaseInfo(client, site, tag, onReleaseInfo) {
+function getReleaseInfo(client, site, tag, onReleaseInfo, onError) {
   info.log("grabbing release.json from : " + env.S3_BUCKET + '/' + site);
 
   var s3Params = {
@@ -66,8 +66,13 @@ function getReleaseInfo(client, site, tag, onReleaseInfo) {
 
   var downloader = client.downloadBuffer(s3Params);
   downloader.on('error', function(err) {
-    info.error("unable to download:");
-    info.error(err.stack);
+   if (typeof onError === 'function') {
+      onError(err);
+    } else {
+     info.error("unable to download: " + env.S3_BUCKET + '/' + site + '/release.json');
+     info.error(err.stack);
+     info.log('If you are creating a new site bundle, use the create command to create the initial release.json file.');
+   }
   });
   downloader.on('progress', function() {
     info.progress(/*".", downloader.progressAmount, downloader.progressTotal*/);
@@ -106,15 +111,8 @@ function writeManifest(site, tag) {
           "created": (new Date()).toString()
         };
 
-        var jsonStr = JSON.stringify(newReleaseInfo, null, 4);
-        console.log(jsonStr);
+        writeReleaseJS(newReleaseInfo, site);
 
-        var fs = require('fs');
-        fs.writeFile(workingDir() + '/dist/' + site + '/release.json', jsonStr, function(err) {
-          if (err) {
-            throw err;
-          }
-        });
       });
     }
   }
@@ -122,8 +120,47 @@ function writeManifest(site, tag) {
   getReleaseInfo(client, site, tag, writeIt);
 }
 
+function writeReleaseJS(bodyObj, site) {
+  var jsonStr = JSON.stringify(bodyObj, null, 4);
+  console.log(jsonStr);
+
+  var fs = require('fs');
+  fs.writeFile(workingDir() + '/dist/' + site + '/release.json', jsonStr, function(err) {
+    if (err) {
+      throw err;
+    }
+  });
+}
+
+function moveReleaseJSToProd(client, tag, site) {
+  info.log('uploading new release.json with ' + tag);
+
+  var params = {
+    localFile: workingDir() + '/dist/' + site + '/release.json',
+    s3Params : {
+      Bucket: env.S3_BUCKET,
+      Key: site + "/release.json"
+    }
+  };
+
+  var uploader = client.uploadFile(params);
+  uploader.on('error', function(err) {
+    console.error("unable to upload:", err.stack);
+  });
+  uploader.on('progress', function() {
+    console.log(".", uploader.progressMd5Amount,
+      uploader.progressAmount, uploader.progressTotal);
+  });
+  uploader.on('end', function() {
+    console.log("done uploading");
+    console.log('release to: insert LAMBDA_ENV_VAR here');
+  });
+}
+
 exports.env = function() { return env; };
 exports.workingDir = workingDir;
 exports.s3Client = s3Client;
 exports.getReleaseInfo = getReleaseInfo;
 exports.writeManifest = writeManifest;
+exports.writeReleaseJS = writeReleaseJS;
+exports.moveReleaseJSToProd = moveReleaseJSToProd;

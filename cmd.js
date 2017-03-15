@@ -1,8 +1,8 @@
 const info = require('./cmd/info');
 const bundler = require('./cmd/bundle');
+const create = require('./cmd/create');
 const deploy = require('./cmd/deploy');
 const release = require('./cmd/release');
-const helpers = require('./cmd/helpers');
 const git = require('git-rev');
 
 var args = (JSON.parse(process.env.npm_config_argv)).remain;
@@ -60,6 +60,12 @@ switch(cmd) {
     });
     break;
 
+  case 'create':
+    fetchTag(function(tagStr) {
+      create(site, tagStr, true);
+    });
+    break;
+
   case 'deploy':
     fetchTag(function(tagStr) {
       deploy(site, tagStr, true);
@@ -76,6 +82,7 @@ switch(cmd) {
     info.log(cmd + ' command not found. Try updating jetpack.');
     info.log('Usage for');
     info.label('npm run jetpack');
+    info.log('create [site]: create a new s3 location');
     info.log('bundle [site] [tag-name]: build a site bundle');
     info.log('bundle:dev [site] [tag-name]: build an unminified site bundle with verboses output');
     info.log('deploy [site] [tag-name]: move a local site bundle to S3');
