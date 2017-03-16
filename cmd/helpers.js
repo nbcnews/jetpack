@@ -2,6 +2,7 @@ const info = require('./info');
 const nodeenv = require('node-env-file');
 const git = require('git-rev');
 
+nodeenv(process.env.PWD + '/.jetpack');
 nodeenv(process.env.PWD + '/.env');
 const env = process.env;
 
@@ -153,7 +154,7 @@ function moveReleaseJSToProd(client, tag, site) {
   });
   uploader.on('end', function() {
     console.log("done uploading");
-    console.log('release to: insert LAMBDA_ENV_VAR here');
+    console.log('release to: ' + env.PUBLIC_LAMBDA_ENDPOINT);
   });
 }
 
