@@ -1,25 +1,30 @@
-const info = require('./cmd/info');
+const globals = require('./lib/helpers/globals');
+const info = require('./lib/helpers/info');
 const bundler = require('./cmd/bundle');
 const create = require('./cmd/create');
 const deploy = require('./cmd/deploy');
-const release = require('./cmd/release');
+//const release = require('./cmd/release');
 const git = require('git-rev');
 
 var args = (JSON.parse(process.env.npm_config_argv)).remain;
 var cmd = args[0];
-info.log(args);
 
-const site = args[1];
-const tag = args[2];
+globals.setSite(args[1]);
+globals.setTag(args[2]);
+
+if (!globals.site()) {
+  info.error('No site specified');
+  return;
+}
 
 function fetchTag(action) {
-  if (!tag) {
+  if (!globals.tag()) {
     info.log('No tag/version name provided.');
     git.branch(function(str) {
       info.log('Using git branch name: ' + str);
 
       if (str === 'master') {
-        info.log('Master branch will use the current tag:');
+        info.log('Master branch will use the current local tag:');
         git.tag(function(mtag) {
           info.log(mtag);
           action(mtag);
@@ -27,7 +32,7 @@ function fetchTag(action) {
         return;
       } else {
         if (cmd === 'release') {
-          info.error('You must be on the master branch to do a relase.');
+          info.error('You must be on the master branch to do a release.');
           return;
         }
       }
@@ -39,55 +44,44 @@ function fetchTag(action) {
   action(tag);
 }
 
+fetchTag(function(tagStr) {
+  globals.setTag(tagStr);
 
-if (!site) {
-  info.error('No site specified');
-  return;
-}
+  switch (cmd) {
+    case 'bundle':
+    case 'build':
+      bundler();
+      break;
 
-switch(cmd) {
-  case 'bundle':
-  case 'build':
-    fetchTag(function(tagStr) {
-      bundler(site, tagStr, false);
-    });
-    break;
+    case 'bundle:dev':
+    case 'build:dev':
+      globals.setDevMode(true);
+      bundler();
+      break;
 
-  case 'bundle:dev':
-  case 'build:dev':
-    fetchTag(function(tagStr) {
-      bundler(site, tagStr, true);
-    });
-    break;
+    case 'create':
+      create();
+      break;
 
-  case 'create':
-    fetchTag(function(tagStr) {
-      create(site, tagStr, true);
-    });
-    break;
+    case 'deploy':
+      deploy();
+      break;
 
-  case 'deploy':
-    fetchTag(function(tagStr) {
-      deploy(site, tagStr, true);
-    });
-    break;
+    case 'release':
+      //release();
+      break;
 
-  case 'release':
-    fetchTag(function(tagStr) {
-      release(site, tagStr, false);
-    });
-    break;
-
-  default:
-    info.log(cmd + ' command not found. Try updating jetpack.');
-    info.log('Usage for');
-    info.label('npm run jetpack');
-    info.log('create [site]: create a new s3 location');
-    info.log('bundle [site] [tag-name]: build a site bundle');
-    info.log('bundle:dev [site] [tag-name]: build an unminified site bundle with verboses output');
-    info.log('deploy [site] [tag-name]: move a local site bundle to S3');
-    break;
-}
+    default:
+      info.log(cmd + ' command not found. Try updating jetpack.');
+      info.log('Usage for');
+      info.label('npm run jetpack');
+      info.log('create [site]: create a new s3 location');
+      info.log('bundle [site] [tag-name]: build a site bundle');
+      info.log('bundle:dev [site] [tag-name]: build an unminified site bundle with verboses output');
+      info.log('deploy [site] [tag-name]: move a local site bundle to S3');
+      break;
+  }
+});
 
 /**
  We could also do this
