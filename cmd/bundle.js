@@ -1,19 +1,20 @@
+const globals = require('../lib/helpers/globals');
 const path = require('path');
 const webpack = require('webpack');
-const info = require('./info');
-const helpers = require('./helpers');
+const info = require('../lib/helpers/info');
 const CleanWebpackPlugin = require('clean-webpack-plugin');
+const validator = require('../lib/helpers/validation');
 
-const env = helpers.env();
+module.exports = function() {
+  var workingDir = globals.workingDir();
+  var site = globals.site();
+  var tag = globals.tag();
 
-module.exports = function(site, tag, isDev) {
-  var workingDir = helpers.workingDir();
-
-  var doMinify = !isDev;
+  var doMinify = !globals.isDevMode();
   var plugins = [];
 
   plugins.push(new CleanWebpackPlugin(['dist/' + site], {
-    root: env.PWD,
+    root: globals.PWD,
     verbose: true,
     dry: false,
     exclude: []
@@ -40,22 +41,30 @@ module.exports = function(site, tag, isDev) {
         info.error(stats.compilation.errors);
       } else {
         info.log('files packaged:');
-        stats.compilation.fileDependencies.forEach(function(f) {
+        stats.compilation.fileDependencies.forEach(function (f) {
           info.log(f);
         });
         info.log('missing dependencies:');
-        stats.compilation.missingDependencies.forEach(function(f) {
+        stats.compilation.missingDependencies.forEach(function (f) {
           info.log(f);
         });
         info.log('assets created:');
         info.log(Object.keys(stats.compilation.assets));
       }
 
-      if (!isDev) {
-        helpers.writeManifest(site, tag);
-      }
+      validator.createAndVerifyManifest(function writeReleaseFile(manifest) {
+        var jsonStr = manifest.stringify();
+        console.log(jsonStr);
+
+        var fs = require('fs');
+        fs.writeFile(globals.dist() + 'release.json', jsonStr, function (err) {
+          if (err) {
+            throw err;
+          }
+        });
+      });
     });
-  });
+   });
 
   const filename =  site + '_bundle' + (doMinify?'_min':'') + '.js';
 
@@ -65,7 +74,7 @@ module.exports = function(site, tag, isDev) {
     output: {
       "path": workingDir + '/dist/' + site + '/',
       "filename":  filename,
-      "publicPath": env.PUBLIC_PATH + site + '/' + tag + '/'
+      "publicPath": globals.PUBLIC_PATH + site + '/' + tag + '/'
     },
     resolve: {
       modules: [

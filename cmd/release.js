@@ -1,22 +1,39 @@
-const info = require('./info');
-const helpers = require('./helpers');
+const globals = require('../lib/helpers/globals');
+const info = require('../lib/helpers/info');
+const s3Client = require('../lib/helpers/s3Client');
+const validator = require('../lib/helpers/validation');
 
-module.exports = function(site, tag, isDev) {
-  var client = helpers.s3Client();
+module.exports = function() {
+  var client = s3Client(process.env.S3_BUCKET,
+    process.env.S3_ACCESS_KEY_ID,
+    process.env.S3_SECRET_KEY,
+    globals.site());
 
-  if (!client) {
-    return;
-  }
+  validator.createAndVerifyManifest(function upload(localManifest) {
+    client.uploadFile(globals.dist() + 'release.json', globals.site() + "/release.json", function() {
+      info.label('release to: ' + process.env.PUBLIC_LAMBDA_ENDPOINT);
 
-  function doUpload(releaseInfo) {
-    info.log('current release tag: ' + releaseInfo.version);
-    if (releaseInfo.version === tag) {
-      info.error('Your tag matches the current release. You must choose a unique tag name for your bundle.');
-    } else {
-      helpers.moveReleaseJSToProd(client, tag, site);
-    }
-  }
+      //update log
+      client.getJSONFile('log.json', function onLogLoad(logData) {
+        logData.unshift(localManifest);
+        logData = logData.slice(0,100);
+        fs.writeFile(globals.dist() + 'log.json', JSON.stringify(logData), function (err) {
+          if (err) {
+            throw err;
+          } else {
+            const s3LogPath = globals.site() + '/log.json';
+            client.uploadFile(globals.dist() + 'release.json', s3ReleasePath, function () {
+              info.log('Created pre-release manifest on S3');
+              client.uploadFile(globals.dist() + 'log.json', s3LogPath, function (location) {
+                info.log('Created release log at ' + location);
+              });
+            });
+          }
+        });
+      }, function onLogError(err){
+        info.error(err);
+      });
 
-  helpers.getReleaseInfo(client, site, tag, doUpload);
-
+    });
+  });
 };
