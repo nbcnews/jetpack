@@ -18,14 +18,24 @@ module.exports = function() {
         if (err) {
           throw err;
         }
+        fs.writeFile(globals.dist() + 'log.json', '[' + jsonStr + ']', function (err) {
+          if (err) {
+            throw err;
+          }
+        });
+
         var client = s3Client(process.env.S3_BUCKET,
           process.env.S3_ACCESS_KEY_ID,
           process.env.S3_SECRET_KEY,
           globals.site());
-        const s3Path = globals.site() + '/release.json';
+        const s3ReleasePath = globals.site() + '/release.json';
+        const s3LogPath = globals.site() + '/log.json';
 
-        client.uploadFile(globals.dist() + 'release.json', s3Path, function() {
+        client.uploadFile(globals.dist() + 'release.json', s3ReleasePath, function() {
           info.log('Created pre-release manifest on S3');
+          client.uploadFile(globals.dist() + 'log.json', s3LogPath, function(location) {
+            info.log('Created release log at ' + location);
+          });
         });
       });
     } else {

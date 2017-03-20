@@ -3,7 +3,7 @@ const info = require('./lib/helpers/info');
 const bundler = require('./cmd/bundle');
 const create = require('./cmd/create');
 const deploy = require('./cmd/deploy');
-//const release = require('./cmd/release');
+const release = require('./cmd/release');
 const git = require('git-rev');
 
 var args = (JSON.parse(process.env.npm_config_argv)).remain;
@@ -68,7 +68,7 @@ fetchTag(function(tagStr) {
       break;
 
     case 'release':
-      //release();
+      release();
       break;
 
     default:
