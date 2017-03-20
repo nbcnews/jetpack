@@ -26,6 +26,7 @@ module.exports = function() {
           if (err) {
             throw err;
           } else {
+            const s3ReleasePath = globals.site() + '/release.json';
             const s3LogPath = globals.site() + '/log.json';
             client.uploadFile(globals.dist() + 'release.json', s3ReleasePath, function () {
               info.log('Created pre-release manifest on S3');
