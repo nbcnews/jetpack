@@ -19,7 +19,7 @@ module.exports = function() {
 
       //update log
       client.getJSONFile('log.json', function onLogLoad(logData) {
-        logData.unshift(localManifest);
+        logData.unshift(localManifest.data());
         logData = logData.slice(0,100);
 
         fs.writeFile(globals.dist() + 'log.json', JSON.stringify(logData), function (err) {
