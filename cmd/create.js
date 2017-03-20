@@ -3,6 +3,7 @@ const Manifest = require('../lib/helpers/manifest');
 const info = require('../lib/helpers/info');
 const globals = require('../lib/helpers/globals');
 const s3Client = require('../lib/helpers/s3Client');
+var fs = require('fs');
 
 module.exports = function() {
   validator.ifProjectExists(function onComplete(isExists) {
@@ -13,7 +14,6 @@ module.exports = function() {
       var jsonStr = starterManifest.stringify();
       console.log(jsonStr);
 
-      var fs = require('fs');
       fs.writeFile(globals.dist() + 'release.json', jsonStr, function (err) {
         if (err) {
           throw err;
