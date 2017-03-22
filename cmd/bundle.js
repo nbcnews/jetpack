@@ -4,6 +4,7 @@ const webpack = require('webpack');
 const info = require('../lib/helpers/info');
 const CleanWebpackPlugin = require('clean-webpack-plugin');
 const validator = require('../lib/helpers/validation');
+var exec = require('child_process').exec;
 
 module.exports = function() {
   var workingDir = globals.workingDir();
@@ -21,6 +22,14 @@ module.exports = function() {
   }));
 
   if (doMinify) {
+    plugins.push(function doShrinkwrap() {
+      this.plugin("compile", function() {
+        const cmd = 'npm shrinkwrap';
+        exec(cmd, function(error, stdout, stderr) {
+
+        });
+      });
+    });
     plugins.push(new webpack.optimize.UglifyJsPlugin({
         sourceMap: true,
         mangle: {
