@@ -15,7 +15,7 @@ module.exports = function() {
 
   validator.createAndVerifyManifest(function upload(localManifest) {
     client.uploadFile(globals.dist() + 'release.json', globals.site() + "/release.json", function() {
-      info.label('release to: ' + process.env.PUBLIC_LAMBDA_ENDPOINT);
+      info.label('release to: ' + process.env['PUBLIC_LAMBDA_ENDPOINT_' + globals.site().toUpperCase()]);
 
       //update log
       client.getJSONFile('log.json', function onLogLoad(logData) {

@@ -21,15 +21,24 @@ module.exports = function() {
     exclude: []
   }));
 
+  info.log('PUBLIC PATH ' + process.env.PUBLIC_PATH);
+
+  plugins.push(new webpack.DefinePlugin({
+    JETPACK_SITE: JSON.stringify(globals.site()),
+    JETPACK_VERSION: JSON.stringify(globals.tag()),
+    JETPACK_PUBLIC_PATH : JSON.stringify(process.env.PUBLIC_PATH + site + '/' + tag + '/')
+  }));
+
   if (doMinify) {
     plugins.push(function doShrinkwrap() {
       this.plugin("compile", function() {
         const cmd = 'npm shrinkwrap';
         exec(cmd, function(error, stdout, stderr) {
-
+          console.log('shrinkwrapping');
         });
       });
     });
+
     plugins.push(new webpack.optimize.UglifyJsPlugin({
         sourceMap: true,
         mangle: {
@@ -83,7 +92,7 @@ module.exports = function() {
     output: {
       "path": workingDir + '/dist/' + site + '/',
       "filename":  filename,
-      "publicPath": globals.PUBLIC_PATH + site + '/' + tag + '/'
+      "publicPath": process.env.PUBLIC_PATH + site + '/' + tag + '/'
     },
     resolve: {
       modules: [

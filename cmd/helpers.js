@@ -66,7 +66,7 @@ function moveReleaseJSToProd(client, site, tag) {
   });
   uploader.on('end', function() {
     console.log("done uploading");
-    console.log('release to: ' + env.PUBLIC_LAMBDA_ENDPOINT);
+    console.log('release to: ' + env["PUBLIC_LAMBDA_ENDPOINT_" + globals.site().toUpperCase()]);
   });
 }
 
