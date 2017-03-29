@@ -1,6 +1,6 @@
 {
   "name": "jetpack",
-  "version": "0.0.5",
+  "version": "1.0.0",
   "description": "script bundler and deployment tool",
   "private": true,
   "main": "cmd.js",
