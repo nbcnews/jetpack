@@ -14,7 +14,18 @@ globals.setTag(args[2]);
 
 if (!globals.site()) {
   info.error('No site specified');
+  showHelp();
   return;
+}
+
+function showHelp() {
+  info.log(cmd + ' command not found. Try updating jetpack.');
+  info.log('Usage for');
+  info.label('npm run jetpack');
+  info.log('create [site]: create a new s3 location');
+  info.log('bundle [site] [tag-name]: build a site bundle');
+  info.log('bundle:dev [site] [tag-name]: build an unminified site bundle with verboses output');
+  info.log('deploy [site] [tag-name]: move a local site bundle to S3');
 }
 
 function fetchTag(action) {
@@ -72,13 +83,7 @@ fetchTag(function(tagStr) {
       break;
 
     default:
-      info.log(cmd + ' command not found. Try updating jetpack.');
-      info.log('Usage for');
-      info.label('npm run jetpack');
-      info.log('create [site]: create a new s3 location');
-      info.log('bundle [site] [tag-name]: build a site bundle');
-      info.log('bundle:dev [site] [tag-name]: build an unminified site bundle with verboses output');
-      info.log('deploy [site] [tag-name]: move a local site bundle to S3');
+      showHelp();
       break;
   }
 });

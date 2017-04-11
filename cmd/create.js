@@ -14,6 +14,8 @@ module.exports = function() {
       var jsonStr = starterManifest.stringify();
       console.log(jsonStr);
 
+      //TODO: create dist/project folder
+
       fs.writeFile(globals.dist() + 'release.json', jsonStr, function (err) {
         if (err) {
           throw err;
