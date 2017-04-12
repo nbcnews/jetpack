@@ -103,7 +103,7 @@ module.exports = function() {
       ]
     },
     resolveLoader: {
-      modules: [workingDir + '/node_modules/jetpack/node_modules']
+      modules: [workingDir + '/node_modules', workingDir + '/node_modules/jetpack/node_modules']
     },
     module: {
       loaders: [{
