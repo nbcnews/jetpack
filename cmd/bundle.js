@@ -14,7 +14,7 @@ module.exports = function() {
   var doMinify = !globals.isDevMode();
   var plugins = [];
 
-  plugins.push(new CleanWebpackPlugin(['dist/' + site], {
+  plugins.push(new CleanWebpackPlugin([workingDir + '/dist/' + site], {
     root: globals.PWD,
     verbose: true,
     dry: false,
@@ -82,9 +82,10 @@ module.exports = function() {
         });
       });
     });
-   });
+  });
 
   const filename =  site + '_bundle' + (doMinify?'_min':'') + '.js';
+  console.log('current directory!', workingDir + '/node_modules/jetpack/node_modules');
 
   const wpConfig = {
     context: workingDir,
@@ -101,6 +102,9 @@ module.exports = function() {
         path.resolve(workingDir)
       ]
     },
+    resolveLoader: {
+      modules: [workingDir + '/node_modules/jetpack/node_modules']
+    },
     module: {
       loaders: [{
         test: /\.js$/,
@@ -115,9 +119,9 @@ module.exports = function() {
               if (err.reason.indexOf('import\' is only available') === -1 && err.reason.indexOf('export\' is only available') === -1) {
                 info.error(JSON.stringify(err));
                 /* info.error(err.reason);
-                info.log(err.evidence);
-                info.log(err.scope + ' line:' + err.line + ' char:' + err.character);
-                */
+                 info.log(err.evidence);
+                 info.log(err.scope + ' line:' + err.line + ' char:' + err.character);
+                 */
               }
             });
           }
