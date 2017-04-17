@@ -7,7 +7,7 @@ module.exports = function() {
     var client = s3Client(process.env.S3_BUCKET,
       process.env.S3_ACCESS_KEY_ID,
       process.env.S3_SECRET_KEY,
-      globals.site());
+      globals);
 
     const site = globals.site();
     const tag = globals.tag();

@@ -14,8 +14,6 @@ module.exports = function() {
       var jsonStr = starterManifest.stringify();
       console.log(jsonStr);
 
-      //TODO: create dist/project folder
-
       fs.writeFile(globals.dist() + 'release.json', jsonStr, function (err) {
         if (err) {
           throw err;
@@ -29,7 +27,7 @@ module.exports = function() {
         var client = s3Client(process.env.S3_BUCKET,
           process.env.S3_ACCESS_KEY_ID,
           process.env.S3_SECRET_KEY,
-          globals.site());
+          globals);
         const s3ReleasePath = globals.site() + '/release.json';
         const s3LogPath = globals.site() + '/log.json';
 

@@ -8,14 +8,14 @@ module.exports = function() {
   var client = s3Client(process.env.S3_BUCKET,
     process.env.S3_ACCESS_KEY_ID,
     process.env.S3_SECRET_KEY,
-    globals.site());
+    globals);
 
-  //TODO: make sure the bundle has been deployed
+  //make sure the current tag matches what has been built in the dist folder
 
 
   validator.createAndVerifyManifest(function upload(localManifest) {
     client.uploadFile(globals.dist() + 'release.json', globals.site() + "/release.json", function() {
-      info.label('release to: ' + process.env['PUBLIC_LAMBDA_ENDPOINT_' + globals.site().toUpperCase()]);
+      info.label('release to: ' + process.env.PUBLIC_LAMBDA_ENDPOINT + '?bucket=' + process.env.S3_BUCKET + '&bundle=' + globals.site());
 
       //update log
       client.getJSONFile('log.json', function onLogLoad(logData) {

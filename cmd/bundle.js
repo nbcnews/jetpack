@@ -126,10 +126,10 @@ module.exports = function() {
             });
           }
         }
-      },{
+      }, {
         test: /\.css$/,
         loader: "style-loader!css-loader"
-      },{
+      }, {
         test: /\.html$/,
         loader: "html-loader"
       }, {
