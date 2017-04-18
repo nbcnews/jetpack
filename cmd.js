@@ -4,6 +4,7 @@ const bundler = require('./cmd/bundle');
 const create = require('./cmd/create');
 const deploy = require('./cmd/deploy');
 const release = require('./cmd/release');
+const log = require('./cmd/log');
 const git = require('git-rev');
 
 var args = (JSON.parse(process.env.npm_config_argv)).remain;
@@ -23,9 +24,11 @@ function showHelp() {
   info.log('Usage for');
   info.label('npm run jetpack');
   info.log('create [site]: create a new s3 location');
-  info.log('bundle [site] [tag-name]: build a site bundle');
-  info.log('bundle:dev [site] [tag-name]: build an unminified site bundle with verboses output');
-  info.log('deploy [site] [tag-name]: move a local site bundle to S3');
+  info.log('bundle [site]: build a site bundle');
+  info.log('bundle:dev [site]: build an unminified site bundle with verboses output');
+  info.log('deploy [site]: move a local site bundle to S3');
+  info.log('release [site]: put a bundle on S3 into production');
+  info.log('log [site]: look at the release logs');
 }
 
 function fetchTag(action) {
@@ -69,6 +72,10 @@ fetchTag(function(tagStr) {
       globals.setDevMode(true);
       bundler();
       break;
+
+   case 'log':
+     log();
+     break;
 
     case 'create':
       create();

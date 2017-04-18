@@ -15,7 +15,7 @@ module.exports = function() {
   var plugins = [];
 
   plugins.push(new CleanWebpackPlugin([workingDir + '/dist/' + site], {
-    root: globals.PWD,
+    root: workingDir,
     verbose: true,
     dry: false,
     exclude: []
