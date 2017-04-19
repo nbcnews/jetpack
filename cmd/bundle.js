@@ -67,12 +67,19 @@ module.exports = function() {
           info.log(f);
         });
         info.log('assets created:');
-        info.log(Object.keys(stats.compilation.assets));
+        Object.keys(stats.compilation.assets).forEach(function(key) {
+          var thing = stats.compilation.assets[key];
+          if (Object.keys(thing).indexOf('_cachedSize') !== -1) {
+            info.log(key + '  ' + (thing._cachedSize / 1000) + 'k');
+          } else {
+            info.log(key);
+          }
+        });
       }
 
       validator.createAndVerifyManifest(function writeReleaseFile(manifest) {
         var jsonStr = manifest.stringify();
-        console.log(jsonStr);
+        info.log(jsonStr);
 
         var fs = require('fs');
         fs.writeFile(globals.dist() + 'release.json', jsonStr, function (err) {
@@ -107,10 +114,33 @@ module.exports = function() {
     },
     module: {
       loaders: [{
+        test: /\.es6$/,
+        loader: 'babel-loader',
+        query: {
+          presets: ['es2015']
+        }
+      },{
         test: /\.js$/,
         loader: "jshint-loader",
         options: {
           esversion: 5,
+          emitErrors: false,
+          failOnHint: false,
+          reporter: function(errors) {
+            //ignore import is only available in ES6
+            errors.forEach(function(err) {
+              if (err.reason.indexOf('import\' is only available') === -1 && err.reason.indexOf('export\' is only available') === -1) {
+                info.error(err.id + err.code + ' ' + err.reason);
+                info.error(' ' + err.scope + 'line:' + err.line + ' character:' + err.character + '::' + err.evidence);
+              }
+            });
+          }
+        }
+      },{
+        test: /\.es6$/,
+        loader: "jshint-loader",
+        options: {
+          esversion: 6,
           emitErrors: false,
           failOnHint: false,
           reporter: function(errors) {
