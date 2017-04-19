@@ -14,6 +14,11 @@ module.exports = function() {
       var jsonStr = starterManifest.stringify();
       console.log(jsonStr);
 
+      //create dist folder
+      if (!fs.existsSync(globals.dist())){
+        fs.mkdirSync(globals.dist());
+      }
+
       fs.writeFile(globals.dist() + 'release.json', jsonStr, function (err) {
         if (err) {
           throw err;
@@ -32,7 +37,7 @@ module.exports = function() {
         const s3LogPath = globals.site() + '/log.json';
 
         client.uploadFile(globals.dist() + 'release.json', s3ReleasePath, function() {
-          info.log('Created pre-release manifest on S3');
+          info.log('Created release manifest on S3');
           client.uploadFile(globals.dist() + 'log.json', s3LogPath, function(location) {
             info.log('Created release log at ' + location);
           });
