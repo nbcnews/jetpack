@@ -107,10 +107,34 @@ module.exports = function() {
     },
     module: {
       loaders: [{
+        test: /\.es6$/,
+        loader: 'babel-loader',
+        query: {
+          presets: ['es2015'],
+          plugins: ['transform-runtime']
+        }
+      },{
         test: /\.js$/,
         loader: "jshint-loader",
         options: {
           esversion: 5,
+          emitErrors: false,
+          failOnHint: false,
+          reporter: function(errors) {
+            //ignore import is only available in ES6
+            errors.forEach(function(err) {
+              if (err.reason.indexOf('import\' is only available') === -1 && err.reason.indexOf('export\' is only available') === -1) {
+                info.error(err.id + err.code + ' ' + err.reason);
+                info.error(' ' + err.scope + 'line:' + err.line + ' character:' + err.character + '::' + err.evidence);
+              }
+            });
+          }
+        }
+      },{
+        test: /\.es6$/,
+        loader: "jshint-loader",
+        options: {
+          esversion: 6,
           emitErrors: false,
           failOnHint: false,
           reporter: function(errors) {
