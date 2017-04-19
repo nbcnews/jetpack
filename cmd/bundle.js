@@ -117,11 +117,8 @@ module.exports = function() {
             //ignore import is only available in ES6
             errors.forEach(function(err) {
               if (err.reason.indexOf('import\' is only available') === -1 && err.reason.indexOf('export\' is only available') === -1) {
-                info.error(JSON.stringify(err));
-                /* info.error(err.reason);
-                 info.log(err.evidence);
-                 info.log(err.scope + ' line:' + err.line + ' char:' + err.character);
-                 */
+                info.error(err.id + err.code + ' ' + err.reason);
+                info.error(' ' + err.scope + 'line:' + err.line + ' character:' + err.character + '::' + err.evidence);
               }
             });
           }
