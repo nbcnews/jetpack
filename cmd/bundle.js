@@ -67,12 +67,19 @@ module.exports = function() {
           info.log(f);
         });
         info.log('assets created:');
-        info.log(Object.keys(stats.compilation.assets));
+        Object.keys(stats.compilation.assets).forEach(function(key) {
+          var thing = stats.compilation.assets[key];
+          if (Object.keys(thing).indexOf('_cachedSize') !== -1) {
+            info.log(key + '  ' + (thing._cachedSize / 1000) + 'k');
+          } else {
+            info.log(key);
+          }
+        });
       }
 
       validator.createAndVerifyManifest(function writeReleaseFile(manifest) {
         var jsonStr = manifest.stringify();
-        console.log(jsonStr);
+        info.log(jsonStr);
 
         var fs = require('fs');
         fs.writeFile(globals.dist() + 'release.json', jsonStr, function (err) {
@@ -110,8 +117,7 @@ module.exports = function() {
         test: /\.es6$/,
         loader: 'babel-loader',
         query: {
-          presets: ['es2015'],
-          plugins: ['transform-runtime']
+          presets: ['es2015']
         }
       },{
         test: /\.js$/,
