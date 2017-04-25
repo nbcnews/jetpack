@@ -21,7 +21,8 @@ module.exports = function() {
     exclude: []
   }));
 
-  const pp = (globals.isDevMode() && process.env.PUBLIC_PATH_DEV) ? (process.env.PUBLIC_PATH_DEV + site + '/') : (process.env.PUBLIC_PATH + site + '/' + tag + '/');
+  const devpp = process.env.PUBLIC_PATH_DEV || 'http://127.0.0.1:8888/';
+  const pp = globals.isDevMode() ? (devpp + site + '/') : (process.env.PUBLIC_PATH + site + '/' + tag + '/');
 
   info.log('PUBLIC PATH ' + pp);
 
