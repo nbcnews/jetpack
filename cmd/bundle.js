@@ -21,12 +21,15 @@ module.exports = function() {
     exclude: []
   }));
 
-  info.log('PUBLIC PATH ' + process.env.PUBLIC_PATH);
+  const devpp = process.env.PUBLIC_PATH_DEV || 'http://127.0.0.1:8888/';
+  const pp = globals.isDevMode() ? (devpp + site + '/') : (process.env.PUBLIC_PATH + site + '/' + tag + '/');
+
+  info.log('PUBLIC PATH ' + pp);
 
   plugins.push(new webpack.DefinePlugin({
     JETPACK_SITE: JSON.stringify(globals.site()),
     JETPACK_VERSION: JSON.stringify(globals.tag()),
-    JETPACK_PUBLIC_PATH : JSON.stringify(process.env.PUBLIC_PATH + site + '/' + tag + '/')
+    JETPACK_PUBLIC_PATH : JSON.stringify(pp)
   }));
 
   if (doMinify) {
@@ -94,13 +97,14 @@ module.exports = function() {
   const filename =  site + '_bundle' + (doMinify?'_min':'') + '.js';
   console.log('current directory!', workingDir + '/node_modules/jetpack/node_modules');
 
+
   const wpConfig = {
     context: workingDir,
     entry: workingDir + "/sites/" + site + ".js",
     output: {
       "path": workingDir + '/dist/' + site + '/',
       "filename":  filename,
-      "publicPath": process.env.PUBLIC_PATH + site + '/' + tag + '/'
+      "publicPath": pp
     },
     resolve: {
       modules: [
