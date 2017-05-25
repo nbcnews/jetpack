@@ -1,12 +1,12 @@
 const globals = require('../lib/helpers/globals');
 const info = require('../lib/helpers/info');
-const s3Client = require('../lib/helpers/s3Client');
+const s3 = require('../lib/helpers/s3Client').default();
 const validator = require('../lib/helpers/validation');
 var fs = require('fs');
 var slackWebHook = require('https');
 
 function lambdaEndpoint() {
-  return process.env.PUBLIC_LAMBDA_ENDPOINT + '?bucket=' + process.env.S3_BUCKET + '&bundle=' + globals.site();
+  return process.env.PUBLIC_LAMBDA_ENDPOINT + '?bucket=' + process.env.S3_BUCKET + '&bundle=' + s3.remotePath() + '/' + globals.site();
 }
 
 function sendReleaseNotifications(manifest) {
@@ -48,18 +48,13 @@ function sendReleaseNotifications(manifest) {
 
 module.exports = function() {
   validator.dieIfBuildMismatch(function() {
-    var client = s3Client(process.env.S3_BUCKET,
-      process.env.S3_ACCESS_KEY_ID,
-      process.env.S3_SECRET_KEY,
-      globals);
-
     validator.createAndVerifyManifest(function upload(localManifest) {
 
-      client.uploadFile(globals.dist() + 'release.json', globals.site() + "/release.json", function () {
+      s3.uploadFile(globals.dist() + 'release.json', "release.json", function () {
         info.label('release to: ' + lambdaEndpoint());
 
         //update log
-        client.getJSONFile('log.json', function onLogLoad(logData) {
+        s3.getJSONFile('log.json', function onLogLoad(logData) {
           logData.unshift(localManifest.data());
           logData = logData.slice(0, 100);
 
@@ -67,11 +62,9 @@ module.exports = function() {
             if (err) {
               throw err;
             } else {
-              const s3ReleasePath = globals.site() + '/release.json';
-              const s3LogPath = globals.site() + '/log.json';
-              client.uploadFile(globals.dist() + 'release.json', s3ReleasePath, function () {
+              s3.uploadFile(globals.dist() + 'release.json', 'release.json', function () {
                 info.log('Updated release manifest on S3');
-                client.uploadFile(globals.dist() + 'log.json', s3LogPath, function (location) {
+                s3.uploadFile(globals.dist() + 'log.json', 'log.json', function (location) {
                   info.log('Created release log at ' + location);
                   sendReleaseNotifications(localManifest);
                 });
