@@ -6,7 +6,7 @@ var fs = require('fs');
 var slackWebHook = require('https');
 
 function lambdaEndpoint() {
-  return process.env.PUBLIC_LAMBDA_ENDPOINT + '?bucket=' + process.env.S3_BUCKET + '&bundle=' + s3.remotePath() + '/' + globals.site();
+  return process.env.PUBLIC_LAMBDA_ENDPOINT + '?bucket=' + process.env.S3_BUCKET + '&bundle=' + s3.remotePath();
 }
 
 function sendReleaseNotifications(manifest) {
