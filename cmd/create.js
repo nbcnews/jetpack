@@ -2,7 +2,7 @@ const validator = require('../lib/helpers/validation');
 const Manifest = require('../lib/helpers/manifest');
 const info = require('../lib/helpers/info');
 const globals = require('../lib/helpers/globals');
-const s3Client = require('../lib/helpers/s3Client');
+const s3 = require('../lib/helpers/s3Client').default();
 var fs = require('fs');
 
 module.exports = function() {
@@ -29,16 +29,9 @@ module.exports = function() {
           }
         });
 
-        var client = s3Client(process.env.S3_BUCKET,
-          process.env.S3_ACCESS_KEY_ID,
-          process.env.S3_SECRET_KEY,
-          globals);
-        const s3ReleasePath = globals.site() + '/release.json';
-        const s3LogPath = globals.site() + '/log.json';
-
-        client.uploadFile(globals.dist() + 'release.json', s3ReleasePath, function() {
+        s3.uploadFile(globals.dist() + 'release.json', 'release.json', function() {
           info.log('Created release manifest on S3');
-          client.uploadFile(globals.dist() + 'log.json', s3LogPath, function(location) {
+          s3.uploadFile(globals.dist() + 'log.json',  'log.json', function(location) {
             info.log('Created release log at ' + location);
           });
         });
