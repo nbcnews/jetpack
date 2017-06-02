@@ -45,7 +45,6 @@ function setTagFromGitAndRun (action) {
         info.log('Master branch will use the current local tag:');
         git.tag(function (mtag) {
           globals.setTag(mtag);
-          action();
           info.log(mtag);
         });
       } else {
@@ -54,11 +53,10 @@ function setTagFromGitAndRun (action) {
           return;
         }
       }
-
     });
   }
 
-  action(vtag);
+  action();
 }
 
 switch (cmd) {
