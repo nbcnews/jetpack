@@ -33,46 +33,41 @@ function showHelp () {
   info.log('log [site]: look at the release logs');
 }
 
-function setTagFromGitAndRun (action) {
-  var vtag = globals.tag();//explicitly set
-
-  if (!vtag) {
-    info.log('No tag/version name provided.');
-    git.branch(function (str) {
-      info.log('Using git branch name: ' + str);
-
-      if (str === 'master') {
-        info.log('Master branch will use the current local tag:');
-        git.tag(function (mtag) {
-          globals.setTag(mtag);
-          info.log(mtag);
-        });
-      } else {
-        if (cmd === 'release') {
-          info.error('You must be on the master branch to do a release.');
-          return;
-        }
-      }
-    });
+function runWithVersionTag (action) {
+  if (globals.tag()) { //explicitly set tag
+    action();
+    return;
   }
 
-  action();
+  info.log('No tag/version name provided.');
+  git.branch(function (str) {
+    info.log('Using git branch name: ' + str);
+
+    if (str === 'master') {
+      info.log('Master branch will use the current local tag:');
+      git.tag(function (mtag) {
+        globals.setTag(mtag);
+        info.log(mtag);
+        action();
+      });
+    } else {
+      if (cmd === 'release') {
+        info.error('You must be on the master branch to do a release.');
+      }
+    }
+  });
 }
 
 switch (cmd) {
-  case 'bundle':
-  case 'build':
-    setTagFromGitAndRun(function () {
-      bundler();
-    });
-    break;
-
   case 'bundle:dev':
   case 'build:dev':
-    setTagFromGitAndRun(function () {
-      globals.setDevMode(true);
-      bundler();
-    });
+    globals.setDevMode(true);
+    runWithVersionTag(bundler);
+    break;
+
+  case 'bundle':
+  case 'build':
+    runWithVersionTag(bundler);
     break;
 
   case 'log':
@@ -84,15 +79,11 @@ switch (cmd) {
     break;
 
   case 'deploy':
-    setTagFromGitAndRun(function () {
-      deploy();
-    });
+    runWithVersionTag(deploy);
     break;
 
   case 'release':
-    setTagFromGitAndRun(function () {
-      releaser.verifyAndPush();
-    });
+    runWithVersionTag(releaser.verifyAndPush);
     break;
 
   case 'rollback':
@@ -114,6 +105,4 @@ switch (cmd) {
 }, function(err, stats) {
   // ...
 });
-
-
  */
