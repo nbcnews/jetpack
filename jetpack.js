@@ -13,7 +13,7 @@ import requirelib from './lib/runner/requirelib';
     "v": JETPACK_VERSION,
     "path": JETPACK_PUBLIC_PATH
   });
-  utils.log("JETPACK_VERSION = " + JETPACK_VERSION);
+  utils.log(JETPACK_SITE + " = " + JETPACK_VERSION);
 })(window);
 
 export default {

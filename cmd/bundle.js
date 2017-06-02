@@ -83,13 +83,7 @@ module.exports = function() {
       validator.createAndVerifyManifest(function writeReleaseFile(manifest) {
         var jsonStr = manifest.stringify();
         info.log(jsonStr);
-
-        var fs = require('fs');
-        fs.writeFile(globals.dist() + 'release.json', jsonStr, function (err) {
-          if (err) {
-            throw err;
-          }
-        });
+        manifest.write();
       });
     });
   });
@@ -126,7 +120,7 @@ module.exports = function() {
       },{
         test: /\.js$/,
         loader: "jshint-loader",
-        options: {
+        options: { //TODO ignore /node_modules
           esversion: 5,
           emitErrors: false,
           failOnHint: false,

@@ -3,7 +3,8 @@ const info = require('./lib/helpers/info');
 const bundler = require('./cmd/bundle');
 const create = require('./cmd/create');
 const deploy = require('./cmd/deploy');
-const release = require('./cmd/release');
+const releaser = require('./cmd/release');
+const rollback = require('./cmd/rollback');
 const log = require('./cmd/log');
 const git = require('git-rev');
 
@@ -11,15 +12,16 @@ var args = (JSON.parse(process.env.npm_config_argv)).remain;
 var cmd = args[0];
 
 globals.setSite(args[1]);
-globals.setTag(args[2]);
+if (args[2]) {
+  globals.setTag(args[2]);
+}
 
 if (!globals.site()) {
   info.error('No site specified');
   showHelp();
-  return;
 }
 
-function showHelp() {
+function showHelp () {
   info.log(cmd + ' command not found. Try updating jetpack.');
   info.log('Usage for');
   info.label('npm run jetpack');
@@ -31,19 +33,21 @@ function showHelp() {
   info.log('log [site]: look at the release logs');
 }
 
-function fetchTag(action) {
-  if (!globals.tag()) {
+function setTagFromGitAndRun (action) {
+  var vtag = globals.tag();//explicitly set
+
+  if (!vtag) {
     info.log('No tag/version name provided.');
-    git.branch(function(str) {
+    git.branch(function (str) {
       info.log('Using git branch name: ' + str);
 
       if (str === 'master') {
         info.log('Master branch will use the current local tag:');
-        git.tag(function(mtag) {
+        git.tag(function (mtag) {
+          globals.setTag(mtag);
+          action();
           info.log(mtag);
-          action(mtag);
         });
-        return;
       } else {
         if (cmd === 'release') {
           info.error('You must be on the master branch to do a release.');
@@ -51,49 +55,56 @@ function fetchTag(action) {
         }
       }
 
-      action(str);
     });
-    return;
   }
-  action(tag);
+
+  action(vtag);
 }
 
-fetchTag(function(tagStr) {
-  globals.setTag(tagStr);
-
-  switch (cmd) {
-    case 'bundle':
-    case 'build':
+switch (cmd) {
+  case 'bundle':
+  case 'build':
+    setTagFromGitAndRun(function () {
       bundler();
-      break;
+    });
+    break;
 
-    case 'bundle:dev':
-    case 'build:dev':
+  case 'bundle:dev':
+  case 'build:dev':
+    setTagFromGitAndRun(function () {
       globals.setDevMode(true);
       bundler();
-      break;
+    });
+    break;
 
-   case 'log':
-     log();
-     break;
+  case 'log':
+    log();
+    break;
 
-    case 'create':
-      create();
-      break;
+  case 'create':
+    create();
+    break;
 
-    case 'deploy':
+  case 'deploy':
+    setTagFromGitAndRun(function () {
       deploy();
-      break;
+    });
+    break;
 
-    case 'release':
-      release();
-      break;
+  case 'release':
+    setTagFromGitAndRun(function () {
+      releaser.verifyAndPush();
+    });
+    break;
 
-    default:
-      showHelp();
-      break;
-  }
-});
+  case 'rollback':
+    rollback();
+    break;
+
+  default:
+    showHelp();
+    break;
+}
 
 /**
  We could also do this
