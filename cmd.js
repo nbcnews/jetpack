@@ -30,6 +30,7 @@ function showHelp () {
   info.log('bundle:dev [site]: build an unminified site bundle with verboses output');
   info.log('deploy [site]: move a local site bundle to S3');
   info.log('release [site]: put a bundle on S3 into production');
+  info.log('rollback [site] [version]: do a release with a previous version');
   info.log('log [site]: look at the release logs');
 }
 
