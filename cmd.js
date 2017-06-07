@@ -3,7 +3,8 @@ const info = require('./lib/helpers/info');
 const bundler = require('./cmd/bundle');
 const create = require('./cmd/create');
 const deploy = require('./cmd/deploy');
-const release = require('./cmd/release');
+const releaser = require('./cmd/release');
+const rollback = require('./cmd/rollback');
 const log = require('./cmd/log');
 const git = require('git-rev');
 
@@ -11,15 +12,16 @@ var args = (JSON.parse(process.env.npm_config_argv)).remain;
 var cmd = args[0];
 
 globals.setSite(args[1]);
-globals.setTag(args[2]);
+if (args[2]) {
+  globals.setTag(args[2]);
+}
 
 if (!globals.site()) {
   info.error('No site specified');
   showHelp();
-  return;
 }
 
-function showHelp() {
+function showHelp () {
   info.log(cmd + ' command not found. Try updating jetpack.');
   info.log('Usage for');
   info.label('npm run jetpack');
@@ -28,72 +30,71 @@ function showHelp() {
   info.log('bundle:dev [site]: build an unminified site bundle with verboses output');
   info.log('deploy [site]: move a local site bundle to S3');
   info.log('release [site]: put a bundle on S3 into production');
+  info.log('rollback [site] [version]: do a release with a previous version');
   info.log('log [site]: look at the release logs');
 }
 
-function fetchTag(action) {
-  if (!globals.tag()) {
-    info.log('No tag/version name provided.');
-    git.branch(function(str) {
-      info.log('Using git branch name: ' + str);
-
-      if (str === 'master') {
-        info.log('Master branch will use the current local tag:');
-        git.tag(function(mtag) {
-          info.log(mtag);
-          action(mtag);
-        });
-        return;
-      } else {
-        if (cmd === 'release') {
-          info.error('You must be on the master branch to do a release.');
-          return;
-        }
-      }
-
-      action(str);
-    });
+function runWithVersionTag (action) {
+  if (globals.tag()) { //explicitly set tag
+    action();
     return;
   }
-  action(tag);
+
+  info.log('No tag/version name provided.');
+  git.branch(function (str) {
+    info.log('Using git branch name: ' + str);
+
+    if (str === 'master') {
+      info.log('Master branch will use the current local tag:');
+      git.tag(function (mtag) {
+        globals.setTag(mtag);
+        info.log(mtag);
+        action();
+      });
+    } else {
+      if (cmd === 'release') {
+        info.error('You must be on the master branch to do a release.');
+      }
+    }
+  });
 }
 
-fetchTag(function(tagStr) {
-  globals.setTag(tagStr);
+switch (cmd) {
+  case 'bundle:dev':
+  case 'build:dev':
+    globals.setDevMode(true);
+    runWithVersionTag(bundler);
+    break;
 
-  switch (cmd) {
-    case 'bundle':
-    case 'build':
-      bundler();
-      break;
+  case 'bundle':
+  case 'build':
+    runWithVersionTag(bundler);
+    break;
 
-    case 'bundle:dev':
-    case 'build:dev':
-      globals.setDevMode(true);
-      bundler();
-      break;
+  case 'log':
+    log();
+    break;
 
-   case 'log':
-     log();
-     break;
+  case 'create':
+    create();
+    break;
 
-    case 'create':
-      create();
-      break;
+  case 'deploy':
+    runWithVersionTag(deploy);
+    break;
 
-    case 'deploy':
-      deploy();
-      break;
+  case 'release':
+    runWithVersionTag(releaser.verifyAndPush);
+    break;
 
-    case 'release':
-      release();
-      break;
+  case 'rollback':
+    rollback();
+    break;
 
-    default:
-      showHelp();
-      break;
-  }
-});
+  default:
+    showHelp();
+    break;
+}
 
 /**
  We could also do this
@@ -105,6 +106,4 @@ fetchTag(function(tagStr) {
 }, function(err, stats) {
   // ...
 });
-
-
  */
