@@ -41,20 +41,21 @@ function runWithVersionTag (action) {
   }
 
   info.log('No tag/version name provided.');
-  git.branch(function (str) {
-    info.log('Using git branch name: ' + str);
+  git.branch(function (bstr) {
+    info.log('Using git branch name: ' + bstr);
 
-    if (str === 'master') {
+    if (bstr === 'master') {
       info.log('Master branch will use the current local tag:');
       git.tag(function (mtag) {
         globals.setTag(mtag);
         info.log(mtag);
         action();
       });
+    } else if (cmd === 'release') {
+      info.error('You must be on the master branch to do a release.');
     } else {
-      if (cmd === 'release') {
-        info.error('You must be on the master branch to do a release.');
-      }
+      globals.setTag(bstr);
+      action();
     }
   });
 }
