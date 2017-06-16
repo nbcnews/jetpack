@@ -14,14 +14,16 @@ function updateMasterManifest() {
         process.env.S3_SECRET_KEY,
         globals);
 
-    var localManifest = new Manifest();
-    var masterManifest = new Manifest();
+    const localManifest = new Manifest();
+    const masterManifest = new Manifest();
 
-    var fetchMasterInfo = new Promise((resolve, reject) => {
+    const MASTER_FILE = 'master_min.js';
+    const localMasterFile = globals.workingDir() + '/dist/' + globals.site() + '/' + MASTER_FILE;
+    const fetchMasterInfo = new Promise((resolve, reject) => {
       masterClient.getJSONFile('release.json', resolve, reject);
     });
 
-    var fetchLocalInfo = new Promise((resolve, reject) => {
+    const fetchLocalInfo = new Promise((resolve, reject) => {
       info.log('fetching: local release.json');
       localManifest.readLocalFile(() => resolve(localManifest));
     });
@@ -35,15 +37,20 @@ function updateMasterManifest() {
       })
       .then(() => {
         var hasThisBundle = false;
-        var masterComponents = masterManifest.data().components || [];
+        var masterComponents = (masterManifest.data().master && masterManifest.data().master.components) || [];
+
+        //We need a clean version of the local manifest without the master info.
+        var localManifestNoMaster = new Manifest();
+        localManifestNoMaster.load(localManifest.data());
+
         for (var b = 0; b < masterComponents.length; b++) {
           if (masterComponents[b].url === localManifest.url) {
-            masterComponents[b] = localManifest;
+            masterComponents[b] = localManifestNoMaster;
             hasThisBundle = true;
           }
         }
         if (!hasThisBundle) {
-          masterComponents.push(localManifest.data());
+          masterComponents.push(localManifestNoMaster.data());
         }
 
         var remoteBundles = masterComponents.map((bund) => {
@@ -57,7 +64,6 @@ function updateMasterManifest() {
 
         Promise.all(chunkPromises)
           .then((chunks) => {
-            var localMasterFile = globals.workingDir() + '/dist/' + globals.site() + '/master_min.js';
             fs.unlink(localMasterFile, () => {
               chunks.forEach((chunk) => {
                 fs.appendFileSync(localMasterFile, chunk, 'utf8');
@@ -65,7 +71,10 @@ function updateMasterManifest() {
             });
           })
           .then(() => {
-            console.log('done');
+            console.log('writing master and component manifest');
+            localManifest.appendMaster(MASTER_FILE, masterComponents);
+            localManifest.write();
+            console.log(localManifest.data());
           })
           .catch((err) => {
             info.error(err);
