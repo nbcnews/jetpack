@@ -6,7 +6,7 @@ const CleanWebpackPlugin = require('clean-webpack-plugin');
 const validator = require('../lib/helpers/validation');
 var exec = require('child_process').exec;
 
-module.exports = function() {
+module.exports = function () {
   var workingDir = globals.workingDir();
   var site = globals.site();
   var tag = globals.tag();
@@ -29,34 +29,34 @@ module.exports = function() {
   plugins.push(new webpack.DefinePlugin({
     JETPACK_SITE: JSON.stringify(globals.site()),
     JETPACK_VERSION: JSON.stringify(globals.tag()),
-    JETPACK_PUBLIC_PATH : JSON.stringify(pp)
+    JETPACK_PUBLIC_PATH: JSON.stringify(pp)
   }));
 
   if (doMinify) {
-    plugins.push(function doShrinkwrap() {
-      this.plugin("compile", function() {
+    plugins.push(function doShrinkwrap () {
+      this.plugin('compile', function () {
         const cmd = 'npm shrinkwrap';
-        exec(cmd, function(error, stdout, stderr) {
+        exec(cmd, function (error, stdout, stderr) {
           console.log('shrinkwrapping');
         });
       });
     });
 
     plugins.push(new webpack.optimize.UglifyJsPlugin({
-        sourceMap: true,
-        mangle: {
+      sourceMap: true,
+      mangle: {
           //props: true
           //toplevel: true
-        }
-      })
+      }
+    })
     );
   }
 
-  plugins.push(function giveMeErrors() {
-    this.plugin("compile", function (/*params*/) {
+  plugins.push(function giveMeErrors () {
+    this.plugin('compile', function (/*params*/) {
       info.log('packaging ' + site);
     });
-    this.plugin("done", function (stats) {
+    this.plugin('done', function (stats) {
       if (stats.compilation.errors && stats.compilation.errors.length && process.argv.indexOf('--watch') === -1) {
         info.error('webpack build failed.');
         info.error(stats.compilation.errors);
@@ -70,7 +70,7 @@ module.exports = function() {
           info.log(f);
         });
         info.log('assets created:');
-        Object.keys(stats.compilation.assets).forEach(function(key) {
+        Object.keys(stats.compilation.assets).forEach(function (key) {
           var thing = stats.compilation.assets[key];
           if (Object.keys(thing).indexOf('_cachedSize') !== -1) {
             info.log(key + '  ' + (thing._cachedSize / 1000) + 'k');
@@ -80,7 +80,7 @@ module.exports = function() {
         });
       }
 
-      validator.createAndVerifyManifest(function writeReleaseFile(manifest) {
+      validator.createAndVerifyManifest(function writeReleaseFile (manifest) {
         var jsonStr = manifest.stringify();
         info.log(jsonStr);
         manifest.write();
@@ -88,22 +88,21 @@ module.exports = function() {
     });
   });
 
-  const filename =  site + '_bundle' + (doMinify?'_min':'') + '.js';
+  const filename = site + globals.project() + '_bundle' + (doMinify ? '_min' : '') + '.js';
   console.log('current directory!', workingDir + '/node_modules/jetpack/node_modules');
-
 
   const wpConfig = {
     context: workingDir,
-    entry: workingDir + "/sites/" + site + ".js",
+    entry: workingDir + '/sites/' + site + '.js',
     output: {
-      "path": workingDir + '/dist/' + site + '/',
-      "filename":  filename,
-      "publicPath": pp
+      'path': workingDir + '/dist/' + site + '/',
+      'filename': filename,
+      'publicPath': pp
     },
     resolve: {
       modules: [
-        path.resolve(__dirname.replace('/cmd','')),
-        path.resolve(__dirname.replace('/lib','')),
+        path.resolve(__dirname.replace('/cmd', '')),
+        path.resolve(__dirname.replace('/lib', '')),
         path.resolve(workingDir)
       ]
     },
@@ -117,16 +116,16 @@ module.exports = function() {
         query: {
           presets: ['es2015']
         }
-      },{
+      }, {
         test: /\.js$/,
-        loader: "jshint-loader",
+        loader: 'jshint-loader',
         options: { //TODO ignore /node_modules
           esversion: 5,
           emitErrors: false,
           failOnHint: false,
-          reporter: function(errors) {
+          reporter: function (errors) {
             //ignore import is only available in ES6
-            errors.forEach(function(err) {
+            errors.forEach(function (err) {
               if (err.reason.indexOf('import\' is only available') === -1 && err.reason.indexOf('export\' is only available') === -1) {
                 info.error(err.id + err.code + ' ' + err.reason);
                 info.error(' ' + err.scope + 'line:' + err.line + ' character:' + err.character + '::' + err.evidence);
@@ -134,16 +133,16 @@ module.exports = function() {
             });
           }
         }
-      },{
+      }, {
         test: /\.es6$/,
-        loader: "jshint-loader",
+        loader: 'jshint-loader',
         options: {
           esversion: 6,
           emitErrors: false,
           failOnHint: false,
-          reporter: function(errors) {
+          reporter: function (errors) {
             //ignore import is only available in ES6
-            errors.forEach(function(err) {
+            errors.forEach(function (err) {
               if (err.reason.indexOf('import\' is only available') === -1 && err.reason.indexOf('export\' is only available') === -1) {
                 info.error(err.id + err.code + ' ' + err.reason);
                 info.error(' ' + err.scope + 'line:' + err.line + ' character:' + err.character + '::' + err.evidence);
@@ -153,25 +152,24 @@ module.exports = function() {
         }
       }, {
         test: /\.css$/,
-        loader: "style-loader!css-loader"
+        loader: 'style-loader!css-loader'
       }, {
         test: /\.html$/,
-        loader: "html-loader"
+        loader: 'html-loader'
       }, {
         test: /\.(png|jpg|jpeg|gif|woff)$/,
-        loader: "file-loader?name=[name].[ext]"
+        loader: 'file-loader?name=[name].[ext]'
       }, {
         test: /\.scss$/,
-        loaders: ["style-loader", "css-loader", "sass-loader"]
+        loaders: ['style-loader', 'css-loader', 'sass-loader']
       }]
     },
-    "plugins": plugins
+    'plugins': plugins
   };
 
   var compiler = webpack(wpConfig);
 
-  compiler.run(function(/*err, stats*/) {
+  compiler.run(function (/*err, stats*/) {
     info.log('done');
   });
-
 };
