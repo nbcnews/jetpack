@@ -3,6 +3,7 @@ const info = require('../lib/helpers/info');
 const s3 = require('../lib/helpers/s3Client').default();
 const validator = require('../lib/helpers/validation');
 var fs = require('fs');
+const master = require('./master');
 var slackNotify = require('../lib/helpers/slackNotify');
 
 function lambdaEndpoint () {
@@ -26,6 +27,7 @@ function pushRelease (manifest) {
             info.log('Updated release manifest on S3');
             s3.uploadFile(globals.dist() + 'log.json', 'log.json', function (location) {
               info.log('Created release log at ' + location);
+              master.releaseMasterManifest();
               slackNotify(manifest, lambdaEndpoint());
             });
           });

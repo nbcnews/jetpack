@@ -4,6 +4,8 @@ const webpack = require('webpack');
 const info = require('../lib/helpers/info');
 const CleanWebpackPlugin = require('clean-webpack-plugin');
 const validator = require('../lib/helpers/validation');
+const master = require('./master');
+
 var exec = require('child_process').exec;
 
 module.exports = function () {
@@ -84,6 +86,7 @@ module.exports = function () {
         var jsonStr = manifest.stringify();
         info.log(jsonStr);
         manifest.write();
+        master.buildMasterBundle();
       });
     });
   });
@@ -170,6 +173,6 @@ module.exports = function () {
   var compiler = webpack(wpConfig);
 
   compiler.run(function (/*err, stats*/) {
-    info.log('done');
+    info.log('done bundling');
   });
 };

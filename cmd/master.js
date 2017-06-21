@@ -2,48 +2,59 @@ const globals = require('../lib/helpers/globals');
 const info = require('../lib/helpers/info');
 const s3Client = require('../lib/helpers/s3Client');
 const Manifest = require('../lib/helpers/manifest');
-var rp = require('request-promise-native');
+const rp = require('request-promise-native');
 const fs = require('fs');
 
-function updateMasterManifest() {
+const masterClient = s3Client(process.env.S3_BUCKET,
+  process.env.S3_MASTER_PATH,
+  process.env.S3_ACCESS_KEY_ID,
+  process.env.S3_SECRET_KEY,
+  globals);
+
+
+function buildMasterBundle () {
   if (process.env.S3_MASTER_PATH) {
     info.label('**Master bundle build**');
-    const masterClient = s3Client(process.env.S3_BUCKET,
-        process.env.S3_MASTER_PATH,
-        process.env.S3_ACCESS_KEY_ID,
-        process.env.S3_SECRET_KEY,
-        globals);
-
     const localManifest = new Manifest();
     const masterManifest = new Manifest();
 
     const MASTER_FILE = 'master_min.js';
     const localMasterFile = globals.workingDir() + '/dist/' + globals.site() + '/' + MASTER_FILE;
     const fetchMasterInfo = new Promise((resolve, reject) => {
-      masterClient.getJSONFile('release.json', resolve, reject);
+      masterClient.getJSONFile('release.json', resolve, (err) => {
+        info.log(err);
+        info.log('Master Manifest not found. Starting from scratch.');
+        resolve(null);
+      });
     });
 
-    const fetchLocalInfo = new Promise((resolve, reject) => {
+    const fetchLocalInfo = new Promise((resolve/*, reject*/) => {
       info.log('fetching: local release.json');
       localManifest.readLocalFile(() => resolve(localManifest));
     });
 
     fetchMasterInfo
       .then((json) => {
-        masterManifest.load(json);
+        if (json) {
+          masterManifest.load(json);
+          if (json.master) {
+            masterManifest.appendMaster(json.master, json.master.components);
+          }
+        }
       })
       .then(() => {
         return fetchLocalInfo;
       })
       .then(() => {
-        var hasThisBundle = false;
-        var masterComponents = (masterManifest.data().master && masterManifest.data().master.components) || [];
-
+        let hasThisBundle = false;
+        const m = masterManifest.data();
+        const masterComponents = (m.master && m.master.components) || [];
         //We need a clean version of the local manifest without the master info.
-        var localManifestNoMaster = new Manifest();
+        const localManifestNoMaster = new Manifest();
         localManifestNoMaster.load(localManifest.data());
 
-        for (var b = 0; b < masterComponents.length; b++) {
+        for (let b = 0; b < masterComponents.length; b++) {
+          info.log('component: ' + masterComponents[b].url);
           if (masterComponents[b].url === localManifest.url) {
             masterComponents[b] = localManifestNoMaster;
             hasThisBundle = true;
@@ -53,7 +64,7 @@ function updateMasterManifest() {
           masterComponents.push(localManifestNoMaster.data());
         }
 
-        var remoteBundles = masterComponents.map((bund) => {
+        const remoteBundles = masterComponents.map((bund) => {
           return bund.url + bund.version + '/' + bund.bundle;
         });
 
@@ -64,9 +75,13 @@ function updateMasterManifest() {
 
         Promise.all(chunkPromises)
           .then((chunks) => {
+            let c = 0;
             fs.unlink(localMasterFile, () => {
               chunks.forEach((chunk) => {
+                fs.appendFileSync(localMasterFile, '/*BUNDLE ' + remoteBundles[c] + ' */\n(function(){try {return ', 'utf8');
                 fs.appendFileSync(localMasterFile, chunk, 'utf8');
+                fs.appendFileSync(localMasterFile, ';} catch (ex) {\'console\' in window && console.log(ex);}})();', 'utf8');
+                c++;
               });
             });
           })
@@ -75,6 +90,7 @@ function updateMasterManifest() {
             localManifest.appendMaster(MASTER_FILE, masterComponents);
             localManifest.write();
             console.log(localManifest.data());
+            buildMasterManifest(false);
           })
           .catch((err) => {
             info.error(err);
@@ -87,10 +103,51 @@ function updateMasterManifest() {
         process.exit();
       });
   } else {
-    info.log('No S3_MASTER_RELEASE_MANIFEST defined. No bundle merge performed.');
+    info.log('No S3_MASTER_PATH defined. No bundle merge performed.');
   }
-};
+}
+
+function buildMasterManifest(doUpload) {
+  if (process.env.S3_MASTER_PATH) {
+    const newMasterManifest = new Manifest('release-master.json');
+
+    const fetchLocalInfo = new Promise((resolve/*, reject*/) => {
+      info.log('fetching: local release.json');
+      newMasterManifest.readLocalFile(() => resolve(newMasterManifest), true);
+    });
+
+    fetchLocalInfo
+      .then((localManifest) => {
+        try {
+          const d = localManifest.data();
+          info.log(d);
+          d.bundle = d.master.bundle;
+        } catch (ex) {
+          info.error(ex);
+          throw new Error('Invalid manifest');
+        }
+      })
+      .then(() => {
+        newMasterManifest.write(true);
+        if (doUpload) {
+          info.label('**Master Release**');
+          masterClient.uploadFile(globals.dist() + 'release-master.json', 'release.json', function (location) {
+            info.log('Created master release at ' + location);
+          });
+        }
+      })
+      .catch((err) => {
+        info.error('Master release error');
+        info.error(err);
+        process.exit();
+      });
+  } else {
+    info.log('No S3_MASTER_PATH defined. No bundle merge performed.');
+  }
+}
 
 module.exports = {
-  updateMasterManifest
+  buildMasterBundle,
+  buildMasterManifest: () => { buildMasterManifest(false); },
+  releaseMasterManifest: () => { buildMasterManifest(true); }
 };

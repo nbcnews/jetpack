@@ -76,7 +76,7 @@ switch (cmd) {
     break;
 
   case 'build-master':
-    master.updateMasterManifest();
+    master.buildMasterBundle();
     break;
 
   case 'log':
