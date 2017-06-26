@@ -77,13 +77,23 @@ function buildMasterBundle () {
           .then((chunks) => {
             let c = 0;
             fs.unlink(localMasterFile, () => {
-              chunks.forEach((chunk) => {
-                fs.appendFileSync(localMasterFile, '/*BUNDLE ' + remoteBundles[c] + ' */\n(function(){try {return ', 'utf8');
-                fs.appendFileSync(localMasterFile, chunk, 'utf8');
-                fs.appendFileSync(localMasterFile, ';} catch (ex) {\'console\' in window && console.log(ex);}})();', 'utf8');
-                c++;
+              const snippetpath = globals.workingDir() + '/node_modules/jetpack/lib/devRedirectSnippet_min.js';
+              fs.readFile(snippetpath, 'utf8', function (err, data) {
+                if (err) {
+                  info.log(snippetpath + ' not found.');
+                  process.exit();
+                } else if (data) {
+                  const header = data + 'if(jpcheck(\'' + process.env.S3_PATH + '\')){throw \'jetpack dev redirect\';};';
+                  fs.appendFileSync(localMasterFile, header, 'utf8');
+                  chunks.forEach((chunk) => {
+                    fs.appendFileSync(localMasterFile, '/*BUNDLE ' + remoteBundles[c] + ' */\n(function(){try {return ', 'utf8');
+                    fs.appendFileSync(localMasterFile, chunk, 'utf8');
+                    fs.appendFileSync(localMasterFile, ';} catch (ex) {\'console\' in window && console.log(ex);}})();', 'utf8');
+                    c++;
+                  });
+                }
               });
-            });
+             });
           })
           .then(() => {
             console.log('writing master and component manifest');
