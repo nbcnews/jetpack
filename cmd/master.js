@@ -93,7 +93,7 @@ function buildMasterBundle () {
                   });
                 }
               });
-             });
+            });
           })
           .then(() => {
             console.log('writing master and component manifest');
