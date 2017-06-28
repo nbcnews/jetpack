@@ -29,6 +29,8 @@
     "node-env-file": "^0.1.8",
     "node-sass": "^4.3.0",
     "prompt-text": "^1.0.5",
+    "request": "^2.81.0",
+    "request-promise-native": "^1.0.4",
     "s3": "^4.4.0",
     "sass-loader": "^6.0.5",
     "style-loader": "^0.18.1",

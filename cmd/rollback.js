@@ -3,6 +3,7 @@ const info = require('../lib/helpers/info');
 const s3 = require('../lib/helpers/s3Client').default();
 const Manifest = require('../lib/helpers/manifest');
 const releaser = require('./release');
+const master = require('./master');
 const Prompt = require('prompt-text');
 
 module.exports = function () {
@@ -34,6 +35,7 @@ module.exports = function () {
           if (answers === releaseVer) {
             remoteManifest.write(); //write to local dist
             releaser.pushRelease(remoteManifest);
+            master.releaseMasterManifest();
             info.log('Rollback confirmed');
           } else {
             info.log('Rollback cancelled');

@@ -4,6 +4,7 @@ const bundler = require('./cmd/bundle');
 const create = require('./cmd/create');
 const deploy = require('./cmd/deploy');
 const releaser = require('./cmd/release');
+const master = require('./cmd/master');
 const rollback = require('./cmd/rollback');
 const log = require('./cmd/log');
 const git = require('git-rev');
@@ -28,8 +29,10 @@ function showHelp () {
   info.log('create [site]: create a new s3 location');
   info.log('bundle [site]: build a site bundle');
   info.log('bundle:dev [site]: build an unminified site bundle with verboses output');
+  info.log('build-master [site]');
   info.log('deploy [site]: move a local site bundle to S3');
   info.log('release [site]: put a bundle on S3 into production');
+
   info.log('rollback [site] [version]: do a release with a previous version');
   info.log('log [site]: look at the release logs');
 }
@@ -70,6 +73,10 @@ switch (cmd) {
   case 'bundle':
   case 'build':
     runWithVersionTag(bundler);
+    break;
+
+  case 'build-master':
+    master.buildMasterBundle();
     break;
 
   case 'log':
