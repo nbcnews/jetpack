@@ -25,7 +25,7 @@ module.exports = function () {
       info.log('Rolling back to version: ' + releaseVer);
       //check that the path exists
       s3.getJSONFile(releaseVer + '/release.json', function onLoad (manifestData) {
-        const remoteManifest = Manifest().load(manifestData);
+        const remoteManifest = Manifest().load(manifestData, !!process.env.S3_MASTER_PATH);
         var text = new Prompt({
           name: 'version',
           message: 'Retype the version number (' + releaseVer + ') to confirm rollback:'

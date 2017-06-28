@@ -11,7 +11,6 @@ const masterClient = s3Client(process.env.S3_BUCKET,
   process.env.S3_SECRET_KEY,
   globals);
 
-
 function buildMasterBundle () {
   if (process.env.S3_MASTER_PATH) {
     info.label('**Master bundle build**');
@@ -46,30 +45,51 @@ function buildMasterBundle () {
         return fetchLocalInfo;
       })
       .then(() => {
-        let hasThisBundle = false;
         const m = masterManifest.data();
-        const masterComponents = (m.master && m.master.components) || [];
+        let masterComponents = (m.master && m.master.components) || [];
+        const newComponents = [];
+
         //We need a clean version of the local manifest without the master info.
-        const localManifestNoMaster = new Manifest();
-        localManifestNoMaster.load(localManifest.data());
+        const projectManifest = (new Manifest()).load(localManifest.data());
+
+        let hasLocalProject = false;
+        const projectBundlePath = projectManifest.data().url;
 
         for (let b = 0; b < masterComponents.length; b++) {
-          info.log('component: ' + masterComponents[b].url);
-          if (masterComponents[b].url === localManifest.url) {
-            masterComponents[b] = localManifestNoMaster;
-            hasThisBundle = true;
+          if (masterComponents[b].url === projectBundlePath) {
+            if (!hasLocalProject) {
+              newComponents.push(projectManifest.data());
+              hasLocalProject = true;
+            }
+          } else {
+            newComponents.push(masterComponents[b]);
           }
         }
-        if (!hasThisBundle) {
-          masterComponents.push(localManifestNoMaster.data());
+        if (!hasLocalProject) {
+          newComponents.push(projectManifest.data());
         }
 
-        const remoteBundles = masterComponents.map((bund) => {
+        const remoteBundles = newComponents.map((bund) => {
+          if (bund.url === projectBundlePath) {
+            return 'local';
+          }
           return bund.url + bund.version + '/' + bund.bundle;
         });
 
         const chunkPromises = remoteBundles.map((location) => {
-          console.log('fetching component: ' + location);
+          if (location === 'local') {
+            info.log('fetching local manifest');
+            return new Promise(function (resolve, reject) {
+              fs.readFile(globals.workingDir() + '/dist/' + globals.site() + '/' + localManifest.data().bundle, 'utf8', function (err, data) {
+                if (err) {
+                  reject(err);
+                } else {
+                  resolve(data);
+                }
+              });
+            });
+          }
+          info.log('fetching component: ' + location);
           return rp(location);
         });
 
@@ -97,7 +117,7 @@ function buildMasterBundle () {
           })
           .then(() => {
             console.log('writing master and component manifest');
-            localManifest.appendMaster(MASTER_FILE, masterComponents);
+            localManifest.appendMaster(MASTER_FILE, newComponents);
             localManifest.write();
             console.log(localManifest.data());
             buildMasterManifest(false);
@@ -117,7 +137,7 @@ function buildMasterBundle () {
   }
 }
 
-function buildMasterManifest(doUpload) {
+function buildMasterManifest (doUpload) {
   if (process.env.S3_MASTER_PATH) {
     const newMasterManifest = new Manifest('release-master.json');
 
@@ -134,7 +154,7 @@ function buildMasterManifest(doUpload) {
           d.bundle = d.master.bundle;
         } catch (ex) {
           info.error(ex);
-          throw new Error('Invalid manifest');
+          throw new Error('Invalid manifest. Possibly no components found. So we cannoot rollback the master manifest.');
         }
       })
       .then(() => {
