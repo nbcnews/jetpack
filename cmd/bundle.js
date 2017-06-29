@@ -29,6 +29,7 @@ module.exports = function () {
   info.log('PUBLIC PATH ' + pp);
 
   plugins.push(new webpack.DefinePlugin({
+    JETPACK_PROJECT: JSON.stringify(globals.project()),
     JETPACK_SITE: JSON.stringify(globals.site()),
     JETPACK_VERSION: JSON.stringify(globals.tag()),
     JETPACK_PUBLIC_PATH: JSON.stringify(pp)

@@ -11,9 +11,10 @@ import requirelib from './lib/runner/requirelib';
   window.jetpack.bundles.push({
     "site": JETPACK_SITE,
     "v": JETPACK_VERSION,
-    "path": JETPACK_PUBLIC_PATH
+    "path": JETPACK_PUBLIC_PATH,
+    "project": JETPACK_PROJECT
   });
-  utils.log('jetpack ' + JETPACK_SITE + " = " + JETPACK_VERSION);
+  utils.log('jetpack ' + JETPACK_PROJECT + ' = ' + JETPACK_VERSION);
 })(window);
 
 export default {
