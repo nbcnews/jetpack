@@ -103,7 +103,8 @@ function buildMasterBundle () {
                   info.log(snippetpath + ' not found.');
                   process.exit();
                 } else if (data) {
-                  const header = data + 'if(jpcheck(\'' + process.env.S3_PATH + '\')){throw \'jetpack dev redirect\';};';
+                  const header = data + '!(function(){if(jpcheck(\'' + process.env.S3_PATH + '\')){console.log(\'jetpack dev redirect\');return;} else {';
+                  const footer = '}})();';
                   fs.appendFileSync(localMasterFile, header, 'utf8');
                   chunks.forEach((chunk) => {
                     fs.appendFileSync(localMasterFile, '/*BUNDLE ' + remoteBundles[c] + ' */\n(function(){try {return ', 'utf8');
@@ -111,6 +112,7 @@ function buildMasterBundle () {
                     fs.appendFileSync(localMasterFile, ';} catch (ex) {\'console\' in window && console.log(ex);}})();', 'utf8');
                     c++;
                   });
+                  fs.appendFileSync(localMasterFile, footer, 'utf8');
                 }
               });
             });
