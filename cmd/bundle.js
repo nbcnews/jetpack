@@ -123,6 +123,7 @@ module.exports = function () {
       }, {
         test: /\.js$/,
         loader: 'jshint-loader',
+        exclude: /node_modules/,
         options: { //TODO ignore /node_modules
           esversion: 5,
           emitErrors: false,
