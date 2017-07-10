@@ -121,7 +121,7 @@ function buildMasterBundle () {
             console.log('writing master and component manifest');
             localManifest.appendMaster(MASTER_FILE, newComponents);
             localManifest.write();
-            console.log(localManifest.data());
+            console.log(localManifest.stringify());
             buildMasterManifest(false);
           })
           .catch((err) => {
@@ -147,12 +147,11 @@ function buildMasterManifest (doUpload) {
       info.log('fetching: local release.json');
       newMasterManifest.readLocalFile(() => resolve(newMasterManifest), true);
     });
-
     fetchLocalInfo
       .then((localManifest) => {
         try {
           const d = localManifest.data();
-          info.log(d);
+          info.log(localManifest.stringify());
           d.bundle = d.master.bundle;
         } catch (ex) {
           info.error(ex);
