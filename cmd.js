@@ -7,7 +7,7 @@ const releaser = require('./cmd/release');
 const master = require('./cmd/master');
 const rollback = require('./cmd/rollback');
 const log = require('./cmd/log');
-const git = require('git-rev');
+const git = require('./lib/helpers/git-rev');
 
 var args = (JSON.parse(process.env.npm_config_argv)).remain;
 var cmd = args[0];
